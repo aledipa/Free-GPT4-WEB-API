@@ -1,0 +1,9 @@
+version: "3.9"
+services:
+  api:
+    image: "d0ckmg/free-gpt4-web-api:latest"
+    ports:
+      - "5500:5500"
+    volumes:
+      - ./cookies.json:/cookies.json
+

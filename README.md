@@ -6,19 +6,37 @@ FreeGPT4-WEB-API is a python server that allows you to have a self-hosted GPT-4 
 
 - Python 3
 - Flask
-- EdgeGPT
-
+- `cookies.json` (see [this guide](https://github.com/acheong08/EdgeGPT#getting-authentication-required) for its creation), this file is mandatory for the script to function.
+## Manual Installation
 To install the required libraries, you can use the following command:
 
-`pip3 install Flask EdgeGPT`
+`pip3 install Flask`
 
-
-## Usage
+### Usage
 
 To run the server, use the following command:
 
-`python3 FreeGPT4_Server.py --cookie-file ../cookies.json`
+`python3 FreeGPT4_Server.py --cookie-file /path/to/your/cookies.json`
+## Docker Installation
 
+It's possible to install the docker image of this API by running this command:
+
+`docker container run -v /path/to/your/cookies.json:/cookies.json:ro -p YOUR_PORT:5500 d0ckmg/free-gpt4-web-api`
+
+or alternatively, you can use a docker-compose file:
+
+**docker-compose.yml**
+
+```yaml
+version: "3.9"
+services:
+  api:
+    image: "d0ckmg/free-gpt4-web-api:latest"
+    ports:
+      - "YOUR_PORT:5500"
+    volumes:
+      - /path/to/your/cookies.json:/cookies.json:ro
+```
 
 This will start the server and allow you to access the GPT-4 WEB API.
 
