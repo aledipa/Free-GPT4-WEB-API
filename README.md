@@ -18,6 +18,7 @@ To run the server, use the following command:
 
 `python3 FreeGPT4_Server.py --cookie-file /path/to/your/cookies.json`
 ## Docker Installation
+<img src="./img/docker-logo.webp" width="400" height="100" />
 
 It's possible to install the docker image of this API by running this command:
 
