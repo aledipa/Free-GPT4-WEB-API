@@ -7,7 +7,7 @@ import EdgeGPT
 from flask import Flask, request
 app = Flask(__name__)
 
-ADDRESS = socket.gethostbyname(socket.getfqdn())
+#ADDRESS = socket.gethostbyname(socket.getfqdn())
 #ADDRESS = "192.168.1.X" # Edit if needed, uncomment to use
 
 @app.route('/')
@@ -97,4 +97,4 @@ if __name__ == "__main__":
         )
 
     #Starts the server, change the port if needed
-    app.run(host=ADDRESS, port=5005, debug=False)
+    app.run("0.0.0.0", port=5500, debug=False)
