@@ -1,4 +1,4 @@
-<img src="./img/Free-GPT4-LOGO_(icon_by_vectorsmarket15).png" width="800" height="200" />
+<img src="./img/Free-GPT4-LOGO_(icon_by_vectorsmarket15).png" width="800" height="380" />
 
 # Free-GPT4-WEB-API
 
