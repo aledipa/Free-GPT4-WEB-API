@@ -49,6 +49,12 @@ For example, to generate text using the API, you can send a GET request with the
 
 To stop the server, you can press `CTRL+C` in the terminal where the server is running.
 
+## Siri Integration
+<img src="./img/GPTMode_Logo.png" width="400" height="133" />
+
+You can implement the power of GPT4 in Siri by using the [GPTMode Apple Shortcut](https://www.icloud.com/shortcuts/bfeed30555854958bd6165fa4d82e21b).
+Then you can use it just by saying "GPT Mode" to Siri and then ask your question when prompted to do so.
+
 ## Configuration
 
 The server can be configured by editing the `FreeGPT4_Server.py` file. You can change the server's port, host, and other settings.
@@ -56,9 +62,3 @@ The server can be configured by editing the `FreeGPT4_Server.py` file. You can c
 ## Libraries
 
 FreeGPT4-WEB-API uses the Flask and EdgeGPT libraries. Flask is a micro web framework for Python that allows you to easily create web applications. EdgeGPT is a library that provides an interface to the Bing's GPT-4, credits to [A. Cheong's EdgeGPT](https://github.com/acheong08/EdgeGPT).
-
-## Siri Integration
-<img src="./img/GPTMode_Logo.png" width="310" height="100" />
-
-You can implement the power of GPT4 in Siri by using the [GPTMode Apple Shortcut](https://www.icloud.com/shortcuts/bfeed30555854958bd6165fa4d82e21b).
-Then you can use it just by saying "GPT Mode" to Siri and then ask your question when prompted to do so.
