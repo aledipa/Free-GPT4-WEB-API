@@ -10,9 +10,18 @@ jobs:
 
   build:
 
-    runs-on: alpine-latest
+    runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v3
-    - name: Build the Docker image
-      run: docker build . --file Dockerfile --tag d0ckmg/free-gpt-web-api:$(date +%s)
+    - name: Login to Docker Hub
+      uses: docker/login-action@v2
+      with:
+          username: ${{ secrets.DOCKER_TOKEN_USERNAME }}
+          password: ${{ secrets.DOCKER_TOKEN_PASS }}
+    - name: Build and push
+      uses: docker/build-push-action@v4
+      with:
+          context: .
+          push: true
+          tags: d0ckmg/free-gpt4-web-api:latest
