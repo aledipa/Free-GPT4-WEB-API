@@ -1,5 +1,7 @@
 <img src="./img/Free-GPT4-LOGO_(icon_by_vectorsmarket15).png" width="800" height="420" />
 
+[![Docker Image CI](https://github.com/aledipa/Free-GPT4-WEB-API/actions/workflows/docker-image.yml/badge.svg)](https://github.com/aledipa/Free-GPT4-WEB-API/actions/workflows/docker-image.yml)
+
 # Free-GPT4-WEB-API
 
 FreeGPT4-WEB-API is a python server that allows you to have a self-hosted GPT-4 Unlimited and Free WEB API, via the latest Bing's AI.
