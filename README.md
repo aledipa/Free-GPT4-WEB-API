@@ -1,4 +1,4 @@
-<img src="./img/Free-GPT4-LOGO_(icon_by_vectorsmarket15).png" width="800" height="420" />
+<img src="./img/Free-GPT4-LOGO_(icon_by_vectorsmarket15).png" width="500" height="200" />
 
 [![Docker Image CI](https://github.com/aledipa/Free-GPT4-WEB-API/actions/workflows/docker-image.yml/badge.svg)](https://github.com/aledipa/Free-GPT4-WEB-API/actions/workflows/docker-image.yml)
 
