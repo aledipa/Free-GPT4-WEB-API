@@ -13,16 +13,15 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+    - uses: actions/checkout@v3
     - name: Login to Docker Hub
       uses: docker/login-action@v2
       with:
-          registry: docker.io
           username: ${{ secrets.DOCKER_TOKEN_USERNAME }}
           password: ${{ secrets.DOCKER_TOKEN_PASS }}
-    - uses: actions/checkout@v3
     - name: Build and push
       uses: docker/build-push-action@v4
       with:
           context: .
           push: true
-          tags: latest
+          tags: d0ckmg/free-gpt4-web-api:latest
