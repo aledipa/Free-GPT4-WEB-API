@@ -25,6 +25,8 @@ To run the server, use the following command:
 python3 FreeGPT4_Server.py --cookie-file /path/to/your/cookies.json
 ```
 
+If you want to use it with curl:
+
 ```shell
 fileTMP="$1"
 curl -s -F file=@"${fileTMP}" http://127.0.0.1:5500/
