@@ -1,16 +1,12 @@
 import os
 import re
 
-import EdgeGPT
+# GPT Library
+from EdgeGPT import Chatbot, ConversationStyle, argparse
+# Server
 from flask import Flask
 from flask import request
 
-# import socket
-
-
-
-# Server
-# GPT Library
 
 app = Flask(__name__)
 
@@ -22,13 +18,16 @@ async def index() -> str:
     """
     # Starts the bot and gets the input and style
     print("Initializing...")
-    bot = EdgeGPT.Chatbot(proxy=args.proxy)
+    bot = Chatbot(proxy=args.proxy)
     question = None
     style = "creative"
 
     print("start")
     if request.method == "GET":
         question = request.args.get("text")
+        style = request.args.get('style')
+        if (style != None and style in ["creative", "balanced", "precise"] and args.style == None):
+            args.style = style
         print("get")
     else:
         file = request.files["file"]
@@ -74,7 +73,7 @@ if __name__ == "__main__":
         EdgeGPT Credits: github.com/acheong08/EdgeGPT
     """,
     )
-    parser = EdgeGPT.argparse.ArgumentParser()
+    parser = argparse.ArgumentParser()
     parser.add_argument("--enter-once", action="store_true", default=True)
     parser.add_argument("--no-stream", action="store_true", default=True)
     parser.add_argument("--rich", action="store_true")
@@ -105,11 +104,10 @@ if __name__ == "__main__":
     if os.path.exists(args.cookie_file):
         os.environ["COOKIE_FILE"] = args.cookie_file
     else:
-        parser.print_help()
-        parser.exit(
-            1,
-            "ERROR: use --cookie-file or set environemnt variable COOKIE_FILE",
-        )
+        print("[!] Warning: Cookie file not found, proceeding without cookies (no account mode).")
+        #Creates dummy cookie file if not found
+        with open("../cookies.json", 'w') as fp:
+            fp.close()
 
-    # Starts the server, change the port if needed
+    #Starts the server, change the port if needed
     app.run("0.0.0.0", port=5500, debug=False)
