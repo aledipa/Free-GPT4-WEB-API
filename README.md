@@ -20,6 +20,7 @@ To install the required libraries, you can use the following command:
 ### Usage
 
 To run the server, use the following command:
+
 (Logged with your account)
 ```shell
 python3 FreeGPT4_Server.py --cookie-file /path/to/your/cookies.json
