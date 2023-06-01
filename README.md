@@ -21,7 +21,14 @@ To install the required libraries, you can use the following command:
 
 To run the server, use the following command:
 
-`python3 FreeGPT4_Server.py --cookie-file /path/to/your/cookies.json`
+```shell
+python3 FreeGPT4_Server.py --cookie-file /path/to/your/cookies.json
+```
+
+```shell
+fileTMP="$1"
+curl -s -F file=@"${fileTMP}" http://127.0.0.1:5500/
+```
 ## Docker Installation
 <img src="./img/docker-logo.webp" width="400" height="100" />
 
@@ -65,3 +72,5 @@ The server can be configured by editing the `FreeGPT4_Server.py` file. You can c
 ## Libraries
 
 FreeGPT4-WEB-API uses the Flask and EdgeGPT libraries. Flask is a micro web framework for Python that allows you to easily create web applications. EdgeGPT is a library that provides an interface to the Bing's GPT-4, credits to [A. Cheong's EdgeGPT](https://github.com/acheong08/EdgeGPT).
+
+

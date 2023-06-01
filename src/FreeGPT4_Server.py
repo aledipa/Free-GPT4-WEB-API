@@ -1,52 +1,67 @@
-import socket
 import os
 import re
-# GPT Library
+
 import EdgeGPT
+from flask import Flask
+from flask import request
+
+# import socket
+
+
+
 # Server
-from flask import Flask, request
+# GPT Library
+
 app = Flask(__name__)
 
-#ADDRESS = socket.gethostbyname(socket.getfqdn())
-#ADDRESS = "192.168.1.X" # Edit if needed, uncomment to use
 
-@app.route('/')
-async def index() -> None:
+@app.route("/", methods=["GET", "POST"])
+async def index() -> str:
     """
     Main function
     """
-    #Starts the bot and gets the input and style
+    # Starts the bot and gets the input and style
     print("Initializing...")
     bot = EdgeGPT.Chatbot(proxy=args.proxy)
-    question = request.args.get('text')
-    if (question == None):
+    question = None
+    style = "creative"
+
+    print("start")
+    if request.method == "GET":
+        question = request.args.get("text")
+        print("get")
+    else:
+        file = request.files["file"]
+        text = file.read().decode("utf-8")
+        question = text
+        print("Post reading the file", question)
+
+    print("ici")
+    if question is None:
         return "<p id='response'>Please enter a question</p>"
-    style = request.args.get('style')
-    if (style != None and style in ["creative", "balanced", "precise"] and args.style == None):
-        args.style = style
-        print("\nStyle: " + style)
     print("\nInput: " + question)
-    #Gets the response from the bot
+    # Gets the response from the bot
+
     resp = (
         (
             await bot.ask(
                 prompt=question,
-                conversation_style=args.style,
+                conversation_style="creative",
                 wss_link=args.wss_link,
             )
         )["item"]["messages"][1]["adaptiveCards"][0]["body"][0]["text"],
     )[0]
-    #Cleans the response from the resources links
-    if (re.search("\[\^[0-9]+\^\]\[[0-9]+\]", resp)):
+    # Cleans the response from the resources links
+    # INFO: Unsupported escape sequence in string literal
+    if re.search("\[\^[0-9]+\^\]\[[0-9]+\]", resp):
         resp = resp.split("\n\n")
-        if (len(resp) > 1):
+        if len(resp) > 1:
             resp.pop(0)
         resp = re.sub("\[\^[0-9]+\^\]\[[0-9]+\]", "", str(resp[0]))
     await bot.close()
-    #Returns the response
+    # Returns the response
     return resp
     # return "<p id='response'>" + resp + "</p>" # Uncomment if preferred
-        
 
 
 if __name__ == "__main__":
@@ -96,5 +111,5 @@ if __name__ == "__main__":
             "ERROR: use --cookie-file or set environemnt variable COOKIE_FILE",
         )
 
-    #Starts the server, change the port if needed
+    # Starts the server, change the port if needed
     app.run("0.0.0.0", port=5500, debug=False)
