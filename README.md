@@ -11,7 +11,7 @@ FreeGPT4-WEB-API is a python server that allows you to have a self-hosted GPT-4 
 
 - Python 3
 - Flask
-- `cookies.json` (see [this guide](https://github.com/acheong08/EdgeGPT#getting-authentication-required) for its creation), this file is mandatory for the script to function.
+- `cookies.json` (see [this guide](https://github.com/acheong08/EdgeGPT#getting-authentication-required) for its creation).
 ## Manual Installation
 To install the required libraries, you can use the following command:
 
