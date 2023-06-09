@@ -1,9 +1,10 @@
 import os
 import re
+import argparse
 
 # GPT Library
 import asyncio
-from EdgeGPT.EdgeGPT import Chatbot, ConversationStyle, argparse
+from EdgeGPT.EdgeGPT import Chatbot, ConversationStyle
 # Server
 from flask import Flask
 from flask import request
