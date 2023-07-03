@@ -1,3 +1,4 @@
+import json
 import os
 import re
 import argparse
@@ -41,17 +42,21 @@ async def index() -> str:
     if question is None:
         return "<p id='response'>Please enter a question</p>"
     print("\nInput: " + question)
+    
     # Gets the response from the bot
-
     resp = (
-        (
             await bot.ask(
                 prompt=question,
                 conversation_style="creative",
                 wss_link=args.wss_link,
+                simplify_response=False
             )
-        )["item"]["messages"][1]["adaptiveCards"][0]["body"][0]["text"],
-    )[0]
+        )
+    
+    try:
+        resp = (resp["item"]["messages"][1]["adaptiveCards"][0]["body"][0]["text"])[0]
+    except:
+        resp = resp["item"]["messages"][4]["text"]
     # Cleans the response from the resources links
     # INFO: Unsupported escape sequence in string literal
     if re.search("\[\^[0-9]+\^\]\[[0-9]+\]", resp):
