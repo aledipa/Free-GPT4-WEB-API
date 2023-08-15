@@ -80,4 +80,6 @@ The server can be configured by editing the `FreeGPT4_Server.py` file. You can c
 
 FreeGPT4-WEB-API uses the Flask and EdgeGPT libraries. Flask is a micro web framework for Python that allows you to easily create web applications. EdgeGPT is a library that provides an interface to the Bing's GPT-4, credits to [A. Cheong's EdgeGPT](https://github.com/acheong08/EdgeGPT).
 
+## Notes
 
+The demo server may be overloaded and not always work as expected.
