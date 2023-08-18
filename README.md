@@ -82,4 +82,5 @@ FreeGPT4-WEB-API uses the Flask and EdgeGPT libraries. Flask is a micro web fram
 
 ## Notes
 
-The demo server may be overloaded and not always work as expected.
+• The demo server may be overloaded and not always work as expected.
+• Any kind of contribution to the repository is welcome.
