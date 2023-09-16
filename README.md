@@ -11,26 +11,26 @@ FreeGPT4-WEB-API is a python server that allows you to have a self-hosted GPT-4 
 
 - Python 3
 - Flask
-- `cookies.json` (optional, see [this guide](https://github.com/acheong08/EdgeGPT#getting-authentication-required) for its creation).
+- g4f (from [here](https://github.com/xtekky/gpt4free)).
 ## Manual Installation
 To install the required libraries, you can use the following command:
 
-`pip3 install Flask`
+`pip install -r requirements.txt`
 
 ### Usage
 
 To run the server, use the following command:
 
-(Logged with your account)
-```shell
-python3 FreeGPT4_Server.py --cookie-file /path/to/your/cookies.json
-```
-(Not logged)
+(Get response with sources)
 ```shell
 python3 FreeGPT4_Server.py
 ```
+(Get response without sources)
+```shell
+python3 FreeGPT4_Server.py --no-sources
+```
 
-If you want to use it with curl:
+If you want to use it with curl (credits to [@ayoubelmhamdi](https://github.com/ayoubelmhamdi):
 
 ```shell
 fileTMP="$1"
@@ -78,9 +78,15 @@ The server can be configured by editing the `FreeGPT4_Server.py` file. You can c
 
 ## Libraries
 
-FreeGPT4-WEB-API uses the Flask and EdgeGPT libraries. Flask is a micro web framework for Python that allows you to easily create web applications. EdgeGPT is a library that provides an interface to the Bing's GPT-4, credits to [A. Cheong's EdgeGPT](https://github.com/acheong08/EdgeGPT).
+FreeGPT4-WEB-API uses the Flask and GPT4Free libraries. Flask is a micro web framework for Python that allows you to easily create web applications. GPT4Free is a library that provides an interface to the Bing's GPT-4, credits to [@xtekky's GPT4Free](https://github.com/xtekky/gpt4free).
 
 ## Notes
 
 - The demo server may be overloaded and not always work as expected.
 - Any kind of contribution to the repository is welcome.
+
+## Todo
+- [x] Fix Repository
+- [ ] Update Demo Server
+- [ ] Update Docker Image
+- [ ] Add A.I. provider choice
