@@ -1,11 +1,9 @@
-import json
-import os
 import re
 import argparse
 
 # GPT Library
-import asyncio
-from EdgeGPT.EdgeGPT import Chatbot, ConversationStyle
+import g4f
+
 # Server
 from flask import Flask
 from flask import request
@@ -19,18 +17,13 @@ async def index() -> str:
     """
     Main function
     """
-    # Starts the bot and gets the input and style
+    # Starts the bot and gets the input
     print("Initializing...")
-    bot = Chatbot(proxy=args.proxy)
     question = None
-    style = "creative"
 
     print("start")
     if request.method == "GET":
         question = request.args.get("text")
-        style = request.args.get('style')
-        if (style != None and style in ["creative", "balanced", "precise"] and args.style == None):
-            args.style = style
         print("get")
     else:
         file = request.files["file"]
@@ -44,29 +37,32 @@ async def index() -> str:
     print("\nInput: " + question)
     
     # Gets the response from the bot
-    resp = (
-            await bot.ask(
-                prompt=question,
-                conversation_style="creative",
-                wss_link=args.wss_link,
-                simplify_response=False
-            )
+    print(g4f.Provider.Bing.params)  # supported args
+    # Set with provider
+    response = (
+        await g4f.Provider.Bing.create_async(
+            model="gpt-4",
+            # provider=g4f.Provider.Bing,
+            messages=[{"role": "user", "content": question,}],
+            cookies={"a": "b"},
+            auth=True
         )
-    
-    try:
-        resp = (resp["item"]["messages"][1]["adaptiveCards"][0]["body"][0]["text"])[0]
-    except:
-        resp = resp["item"]["messages"][4]["text"]
+    )
+    #Joins the response into a single string
+    resp_str = ""
+    for message in response:
+        resp_str += message
+
     # Cleans the response from the resources links
     # INFO: Unsupported escape sequence in string literal
-    if re.search("\[\^[0-9]+\^\]\[[0-9]+\]", resp):
-        resp = resp.split("\n\n")
-        if len(resp) > 1:
-            resp.pop(0)
-        resp = re.sub("\[\^[0-9]+\^\]\[[0-9]+\]", "", str(resp[0]))
-    await bot.close()
+    if (args.remove_sources):
+        if re.search("\[\^[0-9]+\^\]\[[0-9]+\]", resp_str):
+            resp_str = resp_str.split("\n\n")
+            if len(resp_str) > 1:
+                resp_str.pop(0)
+            resp_str = re.sub("\[\^[0-9]+\^\]\[[0-9]+\]", "", str(resp_str[0]))
     # Returns the response
-    return resp
+    return resp_str
     # return "<p id='response'>" + resp + "</p>" # Uncomment if preferred
 
 
@@ -77,44 +73,17 @@ if __name__ == "__main__":
         Repo: github.com/aledipa/FreeGPT4-WEB-API
         By: Alessandro Di Pasquale
 
-        EdgeGPT Credits: github.com/acheong08/EdgeGPT
+        GPT4Free Credits: github.com/xtekky/gpt4free
     """,
     )
     parser = argparse.ArgumentParser()
-    parser.add_argument("--enter-once", action="store_true", default=True)
-    parser.add_argument("--no-stream", action="store_true", default=True)
-    parser.add_argument("--rich", action="store_true")
     parser.add_argument(
-        "--proxy",
-        help="Proxy URL (e.g. socks5://127.0.0.1:1080)",
-        type=str,
-    )
-    parser.add_argument(
-        "--wss-link",
-        help="WSS URL(e.g. wss://sydney.bing.com/sydney/ChatHub)",
-        type=str,
-        default="wss://sydney.bing.com/sydney/ChatHub",
-    )
-    parser.add_argument(
-        "--style",
-        choices=["creative", "balanced", "precise"],
-        default="balanced",
-    )
-    parser.add_argument(
-        "--cookie-file",
-        type=str,
-        default="cookies.json",
+        "--remove-sources",
+        action='store_true',
         required=False,
-        help="needed if environment variable COOKIE_FILE is not set",
+        help="needed if you want to remove the sources from the response",
     )
     args = parser.parse_args()
-    if os.path.exists(args.cookie_file):
-        os.environ["COOKIE_FILE"] = args.cookie_file
-    else:
-        print("[!] Warning: Cookie file not found, proceeding without cookies (no account mode).")
-        #Creates dummy cookie file if not found
-        with open("../cookies.json", 'w') as fp:
-            fp.close()
 
     #Starts the server, change the port if needed
     app.run("0.0.0.0", port=5500, debug=False)

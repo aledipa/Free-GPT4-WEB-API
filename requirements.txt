@@ -1,4 +1,3 @@
-EdgeGPT
 flask
 flask[async]
-aiohttp
+g4f
