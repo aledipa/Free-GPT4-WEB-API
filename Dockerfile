@@ -1,16 +1,16 @@
-FROM python:3-alpine
+FROM python:3-slim
 
 WORKDIR /app
 COPY ./requirements.txt /app
 COPY ./src/* /app
 
+RUN apt update && apt install gcc -y
 RUN pip3 install -r requirements.txt
 
 ENV PORT=5500
 EXPOSE "$PORT/tcp"
 
-#ENTRYPOINT nginx && uwsgi --ini /app/params.ini -w FreeGPT4_Server
 #shell form necessary
 SHELL ["python3","/app/FreeGPT4_Server.py"]
 ENTRYPOINT ["python3","/app/FreeGPT4_Server.py"]
-CMD ["--cookie-file","/cookies.json"]
+#CMD ["--cookie-file","/cookies.json"]
