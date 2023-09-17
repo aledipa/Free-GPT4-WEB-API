@@ -30,7 +30,7 @@ python3 FreeGPT4_Server.py
 python3 FreeGPT4_Server.py --no-sources
 ```
 
-If you want to use it with curl (credits to [@ayoubelmhamdi](https://github.com/ayoubelmhamdi):
+If you want to use it with curl (credits to [@ayoubelmhamdi](https://github.com/ayoubelmhamdi)):
 
 ```shell
 fileTMP="$1"
@@ -65,6 +65,7 @@ Once the server is running, you can access the API by sending HTTP requests to t
 For example, to generate text using the API, you can send a GET request with the `text` parameter set to the text you want to use as a prompt and the (optional) `style` parameter set to the style you want to use. The default style is "balanced" and is recommended since it is faster. The generated text will be returned in the response as plain text.
 
 To stop the server, you can press `CTRL+C` in the terminal where the server is running.
+(credits to [@git-malik](https://github.com/git-malik))
 
 ## Siri Integration
 <img src="./img/GPTMode_Logo.png" width="400" height="133" />
@@ -87,6 +88,6 @@ FreeGPT4-WEB-API uses the Flask and GPT4Free libraries. Flask is a micro web fra
 
 ## Todo
 - [x] Fix Repository
-- [ ] Update Demo Server
-- [ ] Update Docker Image
+- [x] Update Demo Server
+- [x] Update Docker Image
 - [ ] Add A.I. provider choice
