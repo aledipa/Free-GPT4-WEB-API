@@ -83,7 +83,7 @@ FreeGPT4-WEB-API uses the Flask and GPT4Free libraries. Flask is a micro web fra
 
 ## Notes
 
-- The demo server may be overloaded and not always work as expected.
+- The demo server may be overloaded and not always work as expected. (at the moment should be fine)
 - Any kind of contribution to the repository is welcome.
 
 ## Todo
@@ -91,3 +91,4 @@ FreeGPT4-WEB-API uses the Flask and GPT4Free libraries. Flask is a micro web fra
 - [x] Update Demo Server
 - [x] Update Docker Image
 - [ ] Add A.I. provider choice
+- [ ] Add GUI
