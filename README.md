@@ -43,6 +43,8 @@ It's possible to install the docker image of this API by running this command:
 
 `docker container run -v /path/to/your/cookies.json:/cookies.json:ro -p YOUR_PORT:5500 d0ckmg/free-gpt4-web-api`
 
+just omit <code>-v /path/to/your/cookies.json:/cookies.json:ro</code> for using it without cookies
+
 or alternatively, you can use a docker-compose file:
 
 **docker-compose.yml**
@@ -54,8 +56,8 @@ services:
     image: "d0ckmg/free-gpt4-web-api:latest"
     ports:
       - "YOUR_PORT:5500"
-    volumes:
-      - /path/to/your/cookies.json:/cookies.json:ro
+    #volumes:
+    #  - /path/to/your/cookies.json:/cookies.json:ro
 ```
 
 This will start the server and allow you to access the GPT-4 WEB API.
