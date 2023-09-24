@@ -1,3 +1,4 @@
 flask
 flask[async]
 g4f
+pyexecjs
