@@ -56,11 +56,11 @@ async def index() -> str:
     # Cleans the response from the resources links
     # INFO: Unsupported escape sequence in string literal
     if (args.remove_sources):
-        if re.search("\[\^[0-9]+\^\]\[[0-9]+\]", resp_str):
+        if re.search(r"\[\^[0-9]+\^\]\[[0-9]+\]", resp_str):
             resp_str = resp_str.split("\n\n")
             if len(resp_str) > 1:
                 resp_str.pop(0)
-            resp_str = re.sub("\[\^[0-9]+\^\]\[[0-9]+\]", "", str(resp_str[0]))
+            resp_str = re.sub(r"\[\^[0-9]+\^\]\[[0-9]+\]", "", str(resp_str[0]))
     # Returns the response
     return resp_str
     # return "<p id='response'>" + resp + "</p>" # Uncomment if preferred
