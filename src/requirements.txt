@@ -1,5 +1,4 @@
 auth
 Flask
-flask_sqlalchemy
 g4f
 Werkzeug
