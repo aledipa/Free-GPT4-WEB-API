@@ -1,0 +1,58 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap');
+/* font-family: 'Inter', sans-serif; */
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Inter', sans-serif;
+  background-color: #E4F2F4;
+}
+
+input::placeholder {
+    font-style: italic;
+}
+
+.inter {
+  font-family: 'Inter', sans-serif;
+}
+
+.darkblue {
+    color: #034953;
+}
+
+.blue {
+    color: #007080;
+}
+
+.label_gray {
+    color: #C8D9DE;
+}
+
+.label_green {
+    color: #035306;
+}
+
+.label_red {
+    color: #8B0000;
+}
+
+.label_darkorange {
+    /* color: #b59e1a; */
+    color: #8b7b00;
+}
+
+.darkblue_bg {
+    background-color: #034953;
+}
+
+.darkgreen_bg {
+    background-color: #035306;
+}
+
+.blue_bg {
+    background-color: #007080;
+}
+
+.fileholder {
+    background-color: white !important;
+}

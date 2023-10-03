@@ -1,0 +1,141 @@
+<!-- flask settings page -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet" type="text/css">
+    <link rel="shortcut icon" href="{{ url_for('static', filename='img/favicon(vectorsmarket15).png') }}" type="image/x-icon">
+    <title>Settings</title>
+</head>
+<body>
+    {% block content %}
+    <div class="m-7">
+        <h1 class="title font-bold inter darkblue text-4xl">Free GPT 4</h1>
+        <h2 class="title blue text-2xl">Server settings</h2>
+    </div>
+
+    <form class="m-7 mt-10 inter" action="/save" method="post" enctype=multipart/form-data>
+        <table class="table-fixed w-full">
+            <tr>
+                <td class="py-1 fond-bold inter darkblue text-lg border-b border-slate-800" id="set_0"><b>File input support:</b></td>
+                <td class="py-1 fond-bold inter darkblue text-lg">
+                {% if data['file_input'] == "True" %}
+                    <input type="radio" id="off_rad_0" name="file_input" value="False" hidden oninput="turnOff('on_0', 'off_0', 'set_0')">
+                    <label for="off_rad_0" id="off_0" class="label_gray"><b>OFF</b></label>
+                    <p class="inline-block mx-1"> - </p>
+                    <input type="radio" id="on_rad_0" id="file_input" name="file_input" value="True" hidden oninput="turnOn('on_0', 'off_0', 'set_0')" checked>
+                    <label for="on_rad_0" id="on_0" class="label_green"><b>ON</b></label>
+                {% else %}
+                    <input type="radio" id="off_rad_0" name="file_input" value="False" hidden oninput="turnOff('on_0', 'off_0', 'set_0')" checked>
+                    <label for="off_rad_0" id="off_0" class="label_red"><b>OFF</b></label>
+                    <p class="inline-block mx-1"> - </p>
+                    <input type="radio" id="on_rad_0" id="file_input" name="file_input" value="True" hidden oninput="turnOn('on_0', 'off_0', 'set_0')">
+                    <label for="on_rad_0" id="on_0" class="label_gray"><b>ON</b></label>
+                {% endif %}
+                </td>
+            </tr>
+            <tr>
+                <td class="py-1 fond-bold inter darkblue text-lg border-b border-slate-800" id="set_1"><b>Show sources:</b></td>
+                <td class="py-1 fond-bold inter darkblue text-lg">
+                {% if data['remove_sources'] == "True" %}
+                <input type="radio" id="off_rad_1" name="remove_sources" value="True" hidden oninput="turnOff('on_1', 'off_1', 'set_1')" checked>
+                    <label for="off_rad_1" id="off_1" class="label_red"><b>OFF</b></label>
+                    <p class="inline-block mx-1"> - </p>
+                    <input type="radio" id="on_rad_1" name="remove_sources" value="False" hidden oninput="turnOn('on_1', 'off_1', 'set_1')">
+                    <label for="on_rad_1" id="on_1" class="label_gray"><b>ON</b></label>
+                {% else %}
+                    <input type="radio" id="off_rad_1" name="remove_sources" value="True" hidden oninput="turnOff('on_1', 'off_1', 'set_1')">
+                    <label for="off_rad_1" id="off_1" class="label_gray"><b>OFF</b></label>
+                    <p class="inline-block mx-1"> - </p>
+                    <input type="radio" id="on_rad_1" name="remove_sources" value="False" hidden oninput="turnOn('on_1', 'off_1', 'set_1')" checked>
+                    <label for="on_rad_1" id="on_1" class="label_green"><b>ON</b></label>
+                {% endif %}
+                </td>
+            </tr>
+            <tr>
+                <td class="py-1 fond-bold inter darkblue text-lg border-b border-slate-800">
+                    <b>Server port:</b>
+                    <br>
+                    <p id="warning_0" class="text-sm label_darkorange" hidden> <b>Warning:</b> the port change will take effect only after you've manually restarted the server </p>
+                </td>
+                <td class="py-1 fond-bold inter darkblue text-lg">
+                    <b>
+                        <input type="number" id="port" name="port" class="input outline-none py-1 px-2 rounded-lg inter w-24" placeholder="Port" value="{{ data['port'] }}" onchange="showElement('warning_0')">
+                    </b>
+                </td>
+            </tr>
+            <tr>
+                <td class="py-1 fond-bold inter darkblue text-lg border-b border-slate-800"><b>A.I. Provider:</b></td>
+                <td class="py-1 fond-bold inter darkblue text-lg">
+                    <b>
+                        <select name="provider" class="input outline-none py-1 px-2 rounded-lg inter w-24">
+                            <option value="{{ data['provider'] }}"> {{ data['provider'] }} - Default </option>
+                            {% for key, value in providers.items() %}
+                                <option value="{{ key }}"> {{ key }} </option>
+                            {% endfor %}
+                        </select>
+                    </b>
+                </td>
+            </tr>
+            <!-- Considering to implement this -->
+            <!-- <tr>
+                <td class="py-1 fond-bold inter darkblue text-lg border-b border-slate-800"><b>A.I. Model:</b></td>
+                <td class="py-1 fond-bold inter darkblue text-lg">
+                    <b>
+                        <select name="model" class="input outline-none py-1 px-2 rounded-lg inter w-24">
+                            <option value="option1">Option 1</option>
+                            <option value="option2">Option 2</option>
+                            <option value="option3">Option 3</option>
+                        </select>
+                    </b>
+                </td>
+            </tr> -->
+            <tr>
+                <td class="py-1 fond-bold inter darkblue text-lg border-b border-slate-800"><b>Cookies:</b></td>
+                <td class="py-1 fond-bold inter darkblue text-lg">
+                    <b>
+                        <input type="file" id="cookie_file" name="cookie_file" class="input outline-none py-1 px-2 rounded-lg inter w-24 fileholder" placeholder="Cookies" value="{{ data['cookie_file'] }}" accept=".json" oninput="changeButton('cookies_button')" hidden>
+                        {% if data['cookie_file']|length == 0 %}
+                            <label for="cookie_file" id="cookies_button" class="button outline-none py-1 px-4 rounded-lg darkblue_bg inter text-white text-md mt-5 hover:opacity-95 w-24">Upload</label>
+                        {% else %}
+                            <label for="cookie_file" id="change_cookies_button" class="button outline-none py-1 px-4 rounded-lg darkgreen_bg inter text-white text-md mt-5 hover:opacity-95 w-24">Change</label>
+                        {% endif %}
+                    </b>
+                </td>
+            </tr>
+            <tr>
+                <td class="py-1 fond-bold inter darkblue text-lg border-b border-slate-800"><b>Input keyword:</b></td>
+                <td class="py-1 fond-bold inter darkblue text-lg">
+                    <b>
+                        <input type="text" id="keyword" name="keyword" class="input outline-none py-1 px-2 rounded-lg inter w-24" placeholder="i.e. input" value="{{ data['keyword'] }}">
+                    </b>
+                </td>
+            </tr>
+        </table>
+        <!-- enter password to confirm -->
+        <div class="flex justify-start mt-12">
+            <input type="password" id="password" name="password" class="input outline-none py-3 px-4 rounded-lg inter w-60" placeholder="Enter password to confirm" onchange="replaceElement('save_label_dummy', 'save_label')">
+        </div>
+        <!-- save and apply button -->
+        <div class="flex justify-start">
+            <button type="submit" id="save" hidden>Save and apply</button>
+            <!-- dummy label gray -->
+            <label for="save" id="save_label" class="button outline-none py-3 px-4 pl-5 rounded-lg darkblue_bg inter text-white text-md mt-3 hover:opacity-95 w-40" hidden>Save and apply</label>
+            <label id="save_label_dummy" class="button outline-none py-3 px-4 pl-5 rounded-lg bg-slate-300 inter text-white text-md mt-3 w-40">Save and apply</label>
+        </div>
+          
+    </form>
+
+
+    
+    {% endblock %}
+</body>
+<!-- script import -->
+<script src="{{ url_for('static', filename='js/script.js') }}" type="text/javascript"></script>
+</html>
+<!-- Path: src/templates/settings.html -->
