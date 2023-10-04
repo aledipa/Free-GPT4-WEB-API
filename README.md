@@ -1,3 +1,4 @@
+
 <img src="./img/Free-GPT4-LOGO_(icon_by_vectorsmarket15).png" width="500" height="200" />
 
 [![Docker Image CI](https://github.com/aledipa/Free-GPT4-WEB-API/actions/workflows/docker-image.yml/badge.svg)](https://github.com/aledipa/Free-GPT4-WEB-API/actions/workflows/docker-image.yml)
@@ -12,23 +13,38 @@ FreeGPT4-WEB-API is a python server that allows you to have a self-hosted GPT-4 
 - Python 3
 - Flask
 - g4f (from [here](https://github.com/xtekky/gpt4free)).
+- aiohttp
+- auth
+- Werkzeug
 ## Manual Installation
 To install the required libraries, you can use the following command:
 
-`pip install -r requirements.txt`
+`pip3 install -r requirements.txt`
 
 ### Usage
 
 To run the server, use the following command:
 
-(Get response with sources)
 ```shell
-python3 FreeGPT4_Server.py
+python3 FreeGPT4_Server.py [-h] 
+[--remove-sources] [--enable-gui] 
+[--cookie-file COOKIE_FILE] [--file-input] 
+[--port PORT] [--model MODEL][--provider PROVIDER] 
+[--keyword KEYWORD]
 ```
-(Get response without sources)
-```shell
-python3 FreeGPT4_Server.py --no-sources
-```
+
+
+Options:
+
+```-h, --help``` show this help message and exit
+```--remove-sources```  needed if you want to remove the sources from the response
+```--enable-gui```  needed if you want to use a graphical interface for settings. If you're going to enable it, a password set is needed in order to protect the settings web page.
+```--cookie-file COOKIE_FILE``` needed if you want to use a cookie file
+```--file-input```  needed if you want to add the file as input support
+```--port PORT``` needed if you want to change the port (default: 5500)
+```--model MODEL``` needed if you want to change the model (default: gpt_4)
+```--provider PROVIDER``` needed if you want to change the provider (default: Bing)
+```--keyword KEYWORD``` needed if you want to add the keyword support
 
 If you want to use it with curl (credits to [@ayoubelmhamdi](https://github.com/ayoubelmhamdi)):
 
@@ -36,6 +52,7 @@ If you want to use it with curl (credits to [@ayoubelmhamdi](https://github.com/
 fileTMP="$1"
 curl -s -F file=@"${fileTMP}" http://127.0.0.1:5500/
 ```
+
 ## Docker Installation
 <img src="./img/docker-logo.webp" width="400" height="100" />
 
@@ -79,16 +96,16 @@ Then you can use it just by saying "GPT Mode" to Siri and then ask your question
 
 The server can be configured by editing the `FreeGPT4_Server.py` file. You can change the server's port, host, and other settings.
 
-## Libraries
+## Main Libraries
 
 FreeGPT4-WEB-API uses the Flask and GPT4Free libraries. Flask is a micro web framework for Python that allows you to easily create web applications. GPT4Free is a library that provides an interface to the Bing's GPT-4, credits to [@xtekky's GPT4Free](https://github.com/xtekky/gpt4free).
 
 ## Notes
 
-- The demo server may be overloaded and not always work as expected. (at the moment should be fine)
+- The demo server may be overloaded and not always work as expected. (at the moment it should be fine)
 - Any kind of contribution to the repository is welcome.
 
-## Todo
+## Todo ✔️
 - [x] Fix Repository
 - [x] Update Demo Server
 - [x] Update Docker Image
