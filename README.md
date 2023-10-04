@@ -37,13 +37,21 @@ python3 FreeGPT4_Server.py [-h]
 Options:
 
 ```-h, --help``` show this help message and exit
+
 ```--remove-sources```  needed if you want to remove the sources from the response
+
 ```--enable-gui```  needed if you want to use a graphical interface for settings. If you're going to enable it, a password set is needed in order to protect the settings web page.
+
 ```--cookie-file COOKIE_FILE``` needed if you want to use a cookie file
+
 ```--file-input```  needed if you want to add the file as input support
+
 ```--port PORT``` needed if you want to change the port (default: 5500)
+
 ```--model MODEL``` needed if you want to change the model (default: gpt_4)
+
 ```--provider PROVIDER``` needed if you want to change the provider (default: Bing)
+
 ```--keyword KEYWORD``` needed if you want to add the keyword support
 
 If you want to use it with curl (credits to [@ayoubelmhamdi](https://github.com/ayoubelmhamdi)):
