@@ -1,4 +1,5 @@
-flask
-flask[async]
+aiohttp
+auth
+Flask
 g4f
-pyexecjs
+Werkzeug
