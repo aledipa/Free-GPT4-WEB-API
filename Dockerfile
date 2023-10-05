@@ -1,10 +1,10 @@
-FROM python:3-slim
+FROM python:3.11
 
 WORKDIR /app
 COPY ./requirements.txt /app
 COPY ./src/* /app
 
-RUN apt update && apt install gcc python3-dev -y
+RUN apt update && apt install gcc -y
 RUN pip3 install -r requirements.txt
 
 ENV PORT=5500
