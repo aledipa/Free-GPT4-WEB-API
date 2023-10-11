@@ -61,6 +61,11 @@ fileTMP="$1"
 curl -s -F file=@"${fileTMP}" http://127.0.0.1:5500/
 ```
 
+GUI Preview:
+
+<img src="https://media.discordapp.net/attachments/490563817915416586/1161659745246117960/login.png" width="408" height="290" />
+<img src="https://cdn.discordapp.com/attachments/490563817915416586/1161659745577488496/settings.png" width="408" height="290" />
+
 ## Docker Installation
 <img src="./img/docker-logo.webp" width="400" height="100" />
 
