@@ -34,7 +34,6 @@ PROVIDERS = {
     "Bing": g4f.Provider.Bing,
     "ChatgptAi": g4f.Provider.ChatgptAi,
     "ChatgptLogin": g4f.Provider.ChatgptLogin,
-    "DeepAi": g4f.Provider.DeepAi,
     "H2o": g4f.Provider.H2o,
     "HuggingChat": g4f.Provider.HuggingChat,
     "Opchatgpts": g4f.Provider.Opchatgpts,
