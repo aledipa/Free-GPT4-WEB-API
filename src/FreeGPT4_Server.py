@@ -22,7 +22,7 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1000 * 1000 # 16 MB
 
 # Settings file path
-SETTINGS_FILE = "data/settings.json"
+SETTINGS_FILE = "./data/settings.json"
 
 # Available providers
 PROVIDERS = {
