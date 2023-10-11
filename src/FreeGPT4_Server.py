@@ -144,7 +144,7 @@ async def index() -> str:
 
     # Cleans the response from the resources links
     # INFO: Unsupported escape sequence in string literal
-    if (args.remove_sources):
+    if (args.remove_sources == "True"):
         if re.search(r"\[\^[0-9]+\^\]\[[0-9]+\]", resp_str):
             resp_str = resp_str.split("\n\n")
             if len(resp_str) > 1:
