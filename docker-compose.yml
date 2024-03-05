@@ -1,11 +1,11 @@
 version: "3.9"
 services:
   api:
-    # image: "d0ckmg/free-gpt4-web-api:latest"
-    build: .
+    image: "d0ckmg/free-gpt4-web-api:latest"
+    #build: .
     ports:
       - "5500:5500"
-    command: --remove-sources
+    command: --remove-sources #--enable-gui --password CHANGE_ME
     # volumes:
     #   - ./cookies.json:/cookies.json
 

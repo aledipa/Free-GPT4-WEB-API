@@ -228,6 +228,12 @@ if __name__ == "__main__":
         help="needed if you want to use a graphical interface for settings",
     )
     parser.add_argument(
+        "--password",
+        action='store',
+        required=False,
+        help="optional, needed if you want to set a password for the settings page [mandatory in docker envirtonment]",
+    )
+    parser.add_argument(
         "--cookie-file",
         action='store',
         required=False,
@@ -314,9 +320,25 @@ if __name__ == "__main__":
         #asks for password to set to lock the settings page
         #checks if settings.json contains a password
         if (data["password"] == ""):
+            if(args.password != ""):
+                password = args.password
+                print("[V] Password set.")
+                try:
+                    data["password"] = password
+                    with open(SETTINGS_FILE, "w") as f:
+                        json.dump(data, f)
+                        f.close()
+                        print("[V] Password saved.") 
+                except Exception as error:
+                    print("[X] Error:", error)
+                    exit()
+            
             try:
                 password = getpass.getpass("Settings page password:\n > ")
                 confirm_password = getpass.getpass("Confirm password:\n > ")
+                if(password == "" or confirm_password == ""):
+                    print("[X] Password cannot be empty")
+                    exit()
                 if (password != confirm_password):
                     print("[X] Passwords don't match")
                     exit()
@@ -337,7 +359,6 @@ if __name__ == "__main__":
             except Exception as error:
                 print("[X] Error:", error)
                 exit()
-
     else:
         print("[!] GUI disabled")
 
