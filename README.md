@@ -66,7 +66,7 @@ curl -s -F file=@"${fileTMP}" http://127.0.0.1:5500/
 GUI Preview:
 
 <img src="https://cdn.discordapp.com/attachments/490563817915416586/1161659745246117960/login.png?ex=65e87271&is=65d5fd71&hm=1abe67d48fe0cb190a2da2ca821c2593a1a26309def341e6653edf5365743418&" width="408" height="290" />
-<img src="https://cdn.discordapp.com/attachments/490563817915416586/1161659745577488496/settings.png?ex=65e87271&is=65d5fd71&hm=da2aa2b1f04517e23a796cc0428b4563c94d3f14e7a145701518b5ad45a67a3b&" width="408" height="290" />
+<img src="https://cdn.discordapp.com/attachments/784094229830959145/1215370856960888872/Screenshot_2024-03-07_alle_19.44.32.png?ex=65fc8150&is=65ea0c50&hm=6e2f4f746d87f999db464565773c0171a5601be641bda2ffaa76832b0701728f&" width="408" height="290" />
 
 ## Docker Installation
 <img src="./img/docker-logo.webp" width="400" height="100" />
