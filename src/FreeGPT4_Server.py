@@ -47,6 +47,13 @@ PROVIDERS = {
     "Yqcloud": g4f.Provider.Yqcloud,
 }
 
+# Available Bing's tones
+TONES = [
+    "Creative",
+    "Balanced",
+    "Precise"
+]
+
 def saveSettings(request, file):
     with open(file, "r") as f:
         data = json.load(f)
@@ -58,6 +65,7 @@ def saveSettings(request, file):
         # data["model"] = request.form["model"] #Considering to implement this
         data["keyword"] = request.form["keyword"]
         data["provider"] = request.form["provider"]
+        data["tone"] = request.form["tone"]
         file = request.files["cookie_file"]
         #checks if the file is not empty
         if file.filename != '':
@@ -86,6 +94,7 @@ def applySettings(file):
         args.model = data["model"]
         args.cookie_file = data["cookie_file"]
         args.remove_sources = data["remove_sources"]
+        args.tone = data["tone"]
         f.close()
     return
 
@@ -98,10 +107,14 @@ async def index() -> str:
     # Starts the bot and gets the input
     print("Initializing...")
     question = None
+    tone = None
 
     print("start")
     if request.method == "GET":
         question = request.args.get(args.keyword) #text
+        tone = request.args.get("tone") #tone
+        if (tone == None or tone not in TONES):
+            tone = args.tone
         print("get")
     else:
         file = request.files["file"]
@@ -113,6 +126,7 @@ async def index() -> str:
     if question is None:
         return "<p id='response'>Please enter a question</p>"
     print("\nInput: " + question)
+    print("\nTone: " + tone)
     
     # Gets the response from the bot
     print(g4f.Provider.Bing.params)  # supported args
@@ -134,7 +148,8 @@ async def index() -> str:
             model=args.model,
             messages=[{"role": "user", "content": question,}],
             cookies=cookies,
-            auth=True
+            auth=True,
+            tone=tone
         )
     )
     #Joins the response into a single string
@@ -219,60 +234,67 @@ if __name__ == "__main__":
         "--remove-sources",
         action='store_true',
         required=False,
-        help="needed if you want to remove the sources from the response",
+        help="Remove the sources from the response",
     )
     parser.add_argument(
         "--enable-gui",
         action='store_true',
         required=False,
-        help="needed if you want to use a graphical interface for settings",
+        help="Use a graphical interface for settings",
     )
     parser.add_argument(
         "--password",
         action='store',
         required=False,
-        help="optional, needed if you want to set a password for the settings page [mandatory in docker envirtonment]",
+        help="Optional, set a password for the settings page [mandatory in docker envirtonment]",
     )
     parser.add_argument(
         "--cookie-file",
         action='store',
         required=False,
         type=str,
-        help="needed if you want to use a cookie file",
+        help="Use a cookie file",
     )
     parser.add_argument(
         "--file-input",
         action='store_true',
         required=False,
-        help="needed if you want to add the file as input support",
+        help="Add the file as input support",
     )
     parser.add_argument(
         "--port",
         action='store',
         required=False,
         type=str,
-        help="needed if you want to change the port (default: 5500)",
+        help="Change the port (default: 5500)",
     )
     parser.add_argument(
         "--model",
         action='store',
         required=False,
         type=str,
-        help="needed if you want to change the model (default: gpt_4)",
+        help="Change the model (default: gpt_4)",
     )
     parser.add_argument(
         "--provider",
         action='store',
         required=False,
         type=str,
-        help="needed if you want to change the provider (default: Bing)",
+        help="Change the provider (default: Bing)",
     )
     parser.add_argument(
         "--keyword",
         action='store',
         required=False,
         type=str,
-        help="needed if you want to add the keyword support",
+        help="Add the keyword support",
+    )
+    parser.add_argument(
+        "--tone",
+        action='store',
+        required=False,
+        type=str,
+        help="Specify the model's tone if supported (Bing's default: Precise)",
     )
     args = parser.parse_args()
 
@@ -312,30 +334,26 @@ if __name__ == "__main__":
         else:
             args.cookie_file = data["cookie_file"]
 
+        if (args.tone != None):
+            data["tone"] = args.tone
+        else:
+            args.tone = data["tone"]
+
         json.dump(data, f)
         f.close()
 
 
     if (args.enable_gui):
-        #asks for password to set to lock the settings page
-        #checks if settings.json contains a password
+        # Asks for password to set to lock the settings page
+        # Checks if settings.json contains a password
         if (data["password"] == ""):
-            if(args.password != ""):
-                password = args.password
-                print("[V] Password set.")
-                try:
-                    data["password"] = password
-                    with open(SETTINGS_FILE, "w") as f:
-                        json.dump(data, f)
-                        f.close()
-                        print("[V] Password saved.") 
-                except Exception as error:
-                    print("[X] Error:", error)
-                    exit()
-            
             try:
-                password = getpass.getpass("Settings page password:\n > ")
-                confirm_password = getpass.getpass("Confirm password:\n > ")
+                if (args.password != None):
+                    password = args.password
+                    confirm_password = password
+                else:
+                    password = getpass.getpass("Settings page password:\n > ")
+                    confirm_password = getpass.getpass("Confirm password:\n > ")
                 if(password == "" or confirm_password == ""):
                     print("[X] Password cannot be empty")
                     exit()
