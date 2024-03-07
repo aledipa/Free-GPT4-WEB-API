@@ -109,7 +109,7 @@ Then you can use it just by saying "GPT Mode" to Siri and then ask your question
 
 ## Configuration
 
-The server can be configured by editing the `FreeGPT4_Server.py` file. You can change the server's port, host, and other settings.
+The server can be configured by editing the `FreeGPT4_Server.py` file. You can change the server's port, host, and other settings. Please do _not_ edit the settings.json file manually, use the GUI or the corresponding parameters. The only cookie needed for the Bing model is _"_U"_.
 
 ## Main Libraries
 
