@@ -187,8 +187,10 @@ def auth():
     else:
         return True
 
-@app.route("/login", methods=["POST"])
+@app.route("/login", methods=["GET", "POST"])
 async def login():
+    if (request.method == "GET"):
+        return redirect("/settings", code=302)
     if (auth()):
         try:
             providers=PROVIDERS
