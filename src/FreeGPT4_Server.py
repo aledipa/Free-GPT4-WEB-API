@@ -66,6 +66,7 @@ def saveSettings(request, file):
         data["keyword"] = request.form["keyword"]
         data["provider"] = request.form["provider"]
         data["tone"] = request.form["tone"]
+        data["system_prompt"] = request.form["system_prompt"]
         file = request.files["cookie_file"]
         #checks if the file is not empty
         if file.filename != '':
@@ -95,6 +96,7 @@ def applySettings(file):
         args.cookie_file = data["cookie_file"]
         args.remove_sources = data["remove_sources"]
         args.tone = data["tone"]
+        args.system_prompt = data["system_prompt"]
         f.close()
     return
 
@@ -125,12 +127,12 @@ async def index() -> str:
     print("ici")
     if question is None:
         return "<p id='response'>Please enter a question</p>"
-    print("\nInput: " + question)
-    print("\nTone: " + tone)
     
     # Gets the response from the bot
-    print(g4f.Provider.Bing.params)  # supported args
-    print("COOKIES: " + str(len(args.cookie_file)))
+    print(PROVIDERS[args.provider].params)  # supported args
+    print("\nCookies: " + str(len(args.cookie_file)))
+    print("\nInput: " + question)
+    print("\nTone: " + tone)
     if (len(args.cookie_file) != 0):
         try:
             cookies = json.load(open(args.cookie_file)) # Loads the cookies from the file
@@ -146,7 +148,10 @@ async def index() -> str:
     response = (
         await PROVIDERS[args.provider].create_async(
             model=args.model,
-            messages=[{"role": "user", "content": question,}],
+            messages=[
+                {"role": "system", "content": args.system_prompt}, 
+                {"role": "user", "content": question}
+            ],
             cookies=cookies,
             auth=True,
             tone=tone
@@ -296,6 +301,13 @@ if __name__ == "__main__":
         type=str,
         help="Specify the model's tone if supported (Bing's default: Precise)",
     )
+    parser.add_argument(
+        "--system-prompt",
+        action='store',
+        required=False,
+        type=str,
+        help="Use a system prompt to 'customize' the answers",
+    )
     args = parser.parse_args()
 
     # Loads the settings from the file
@@ -338,6 +350,11 @@ if __name__ == "__main__":
             data["tone"] = args.tone
         else:
             args.tone = data["tone"]
+        
+        if (args.system_prompt != None):
+            data["system_prompt"] = args.system_prompt
+        else:
+            args.system_prompt = data["system_prompt"]
 
         json.dump(data, f)
         f.close()
