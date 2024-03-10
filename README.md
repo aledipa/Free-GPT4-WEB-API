@@ -26,11 +26,11 @@ To install the required libraries, you can use the following command:
 To run the server, use the following command:
 
 ```shell
-python3 FreeGPT4_Server.py [-h] 
-[--remove-sources] [--enable-gui] 
-[--cookie-file COOKIE_FILE] [--file-input] 
-[--port PORT] [--model MODEL][--provider PROVIDER] 
-[--keyword KEYWORD]
+python3 FreeGPT4_Server.py [-h] [--remove-sources] [--enable-gui]
+                          [--password PASSWORD] [--cookie-file COOKIE_FILE]
+                          [--file-input] [--port PORT] [--model MODEL]
+                          [--provider PROVIDER] [--keyword KEYWORD]
+                          [--tone TONE] [--system-prompt SYSTEM_PROMPT]
 ```
 
 
@@ -55,6 +55,9 @@ Options:
 ```--keyword KEYWORD``` Add the keyword support
 
 ```--tone TONE``` Specify the model's tone if supported (Bing's default: Precise)
+
+```--system-prompt SYSTEM_PROMPT``` Use a system prompt to 'customize' the answers
+
 
 If you want to use it with curl (credits to [@ayoubelmhamdi](https://github.com/ayoubelmhamdi)):
 
@@ -109,7 +112,7 @@ Then you can use it just by saying "GPT Mode" to Siri and then ask your question
 
 ## Configuration
 
-The server can be configured by editing the `FreeGPT4_Server.py` file. You can change the server's port, host, and other settings. Please do _not_ edit the settings.json file manually, use the GUI or the corresponding parameters. The only cookie needed for the Bing model is _"_U"_.
+The server can be configured by editing the `FreeGPT4_Server.py` file. You can change the server's port, host, and other settings. Please do _not_ edit the `settings.json` file manually, use the GUI or the corresponding parameters. The only cookie needed for the Bing model is _"_U"_.
 
 ## Main Libraries
 
@@ -126,3 +129,4 @@ FreeGPT4-WEB-API uses the Flask and GPT4Free libraries. Flask is a micro web fra
 - [x] Update Docker Image
 - [x] Add A.I. provider choice
 - [x] Add GUI
+- [ ] Update README
