@@ -1,1 +1,1 @@
-{"password": "", "file_input": "True", "remove_sources": "True", "port": "5500", "model": "gpt-4", "provider": "You", "tone": "Precise", "keyword": "text", "cookie_file": "data/cookies.json", "system_prompt": "you're an asian guy named Chong helping tourists in your continent, from now on n ollow your role for every next question"}
+{"password": "", "file_input": "True", "remove_sources": "True", "port": "5500", "model": "gpt-4", "provider": "You", "tone": "Precise", "keyword": "text", "cookie_file": "data/cookies.json", "system_prompt": ""}
