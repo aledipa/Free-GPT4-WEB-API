@@ -2,6 +2,7 @@ import re
 import argparse
 import json
 import os
+from uuid import uuid4
 
 # GPT Library
 import g4f
@@ -68,6 +69,8 @@ def saveSettings(request, file):
         data["tone"] = request.form["tone"]
         data["system_prompt"] = request.form["system_prompt"]
         file = request.files["cookie_file"]
+        if (args.private_mode):
+            data["token"] = request.form["token"]
         #checks if the file is not empty
         if file.filename != '':
             #checks if the file is a json file
@@ -94,6 +97,7 @@ def applySettings(file):
         args.provider = data["provider"]
         args.model = data["model"]
         args.cookie_file = data["cookie_file"]
+        args.token = data["token"]
         args.remove_sources = data["remove_sources"]
         args.tone = data["tone"]
         args.system_prompt = data["system_prompt"]
@@ -115,6 +119,8 @@ async def index() -> str:
     if request.method == "GET":
         question = request.args.get(args.keyword) #text
         tone = request.args.get("tone") #tone
+        if (args.private_mode and request.args.get("token") != data["token"]):
+            return "<p id='response'>Invalid token</p>"
         if (tone == None or tone not in TONES):
             tone = args.tone
         print("get")
@@ -229,7 +235,7 @@ async def save():
 if __name__ == "__main__":
     print(
         """
-        FreeGPT4 Web API - A Web API for GPT-4 (Using BingAI)
+        FreeGPT4 Web API - A Web API for GPT-4
         Repo: github.com/aledipa/FreeGPT4-WEB-API
         By: Alessandro Di Pasquale
 
@@ -248,6 +254,12 @@ if __name__ == "__main__":
         action='store_true',
         required=False,
         help="Use a graphical interface for settings",
+    )
+    parser.add_argument(
+        "--private-mode",
+        action='store_true',
+        required=False,
+        help="Use a private token to access the API",
     )
     parser.add_argument(
         "--password",
@@ -357,6 +369,17 @@ if __name__ == "__main__":
             data["system_prompt"] = args.system_prompt
         else:
             args.system_prompt = data["system_prompt"]
+
+        if (args.remove_sources == False):
+            args.remove_sources = data["remove_sources"]
+        else:
+            data["remove_sources"] = args.remove_sources
+
+        if (args.private_mode and data["token"] == ""):
+            token = str(uuid4())
+            data["token"] = token
+        elif (data["token"] != ""):
+            token = data["token"]
 
         json.dump(data, f)
         f.close()

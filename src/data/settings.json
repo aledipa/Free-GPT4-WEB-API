@@ -1,5 +1,6 @@
 {
     "password": "",
+    "token": "",
     "file_input": "True",
     "remove_sources": "True",
     "port": "5500",
