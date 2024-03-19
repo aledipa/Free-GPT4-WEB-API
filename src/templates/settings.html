@@ -24,17 +24,17 @@
             <tr>
                 <td class="py-1 fond-bold inter darkblue text-lg border-b border-slate-800" id="set_0"><b>File input support:</b></td>
                 <td class="py-1 fond-bold inter darkblue text-lg">
-                {% if data['file_input'] == "True" %}
-                    <input type="radio" id="off_rad_0" name="file_input" value="False" hidden oninput="turnOff('on_0', 'off_0', 'set_0')">
+                {% if data['file_input'] %}
+                    <input type="radio" id="off_rad_0" name="file_input" value="false" hidden oninput="turnOff('on_0', 'off_0', 'set_0')">
                     <label for="off_rad_0" id="off_0" class="label_gray"><b>OFF</b></label>
                     <p class="inline-block mx-1"> - </p>
-                    <input type="radio" id="on_rad_0" id="file_input" name="file_input" value="True" hidden oninput="turnOn('on_0', 'off_0', 'set_0')" checked>
+                    <input type="radio" id="on_rad_0" id="file_input" name="file_input" value="true" hidden oninput="turnOn('on_0', 'off_0', 'set_0')" checked>
                     <label for="on_rad_0" id="on_0" class="label_green"><b>ON</b></label>
                 {% else %}
-                    <input type="radio" id="off_rad_0" name="file_input" value="False" hidden oninput="turnOff('on_0', 'off_0', 'set_0')" checked>
+                    <input type="radio" id="off_rad_0" name="file_input" value="false" hidden oninput="turnOff('on_0', 'off_0', 'set_0')" checked>
                     <label for="off_rad_0" id="off_0" class="label_red"><b>OFF</b></label>
                     <p class="inline-block mx-1"> - </p>
-                    <input type="radio" id="on_rad_0" id="file_input" name="file_input" value="True" hidden oninput="turnOn('on_0', 'off_0', 'set_0')">
+                    <input type="radio" id="on_rad_0" id="file_input" name="file_input" value="true" hidden oninput="turnOn('on_0', 'off_0', 'set_0')">
                     <label for="on_rad_0" id="on_0" class="label_gray"><b>ON</b></label>
                 {% endif %}
                 </td>
@@ -42,18 +42,36 @@
             <tr>
                 <td class="py-1 fond-bold inter darkblue text-lg border-b border-slate-800" id="set_1"><b>Show sources:</b></td>
                 <td class="py-1 fond-bold inter darkblue text-lg">
-                {% if data['remove_sources'] == "True" %}
-                <input type="radio" id="off_rad_1" name="remove_sources" value="True" hidden oninput="turnOff('on_1', 'off_1', 'set_1')" checked>
+                {% if data['remove_sources'] %}
+                <input type="radio" id="off_rad_1" name="remove_sources" value="true" hidden oninput="turnOff('on_1', 'off_1', 'set_1')" checked>
                     <label for="off_rad_1" id="off_1" class="label_red"><b>OFF</b></label>
                     <p class="inline-block mx-1"> - </p>
-                    <input type="radio" id="on_rad_1" name="remove_sources" value="False" hidden oninput="turnOn('on_1', 'off_1', 'set_1')">
+                    <input type="radio" id="on_rad_1" name="remove_sources" value="false" hidden oninput="turnOn('on_1', 'off_1', 'set_1')">
                     <label for="on_rad_1" id="on_1" class="label_gray"><b>ON</b></label>
                 {% else %}
-                    <input type="radio" id="off_rad_1" name="remove_sources" value="True" hidden oninput="turnOff('on_1', 'off_1', 'set_1')">
+                    <input type="radio" id="off_rad_1" name="remove_sources" value="true" hidden oninput="turnOff('on_1', 'off_1', 'set_1')">
                     <label for="off_rad_1" id="off_1" class="label_gray"><b>OFF</b></label>
                     <p class="inline-block mx-1"> - </p>
-                    <input type="radio" id="on_rad_1" name="remove_sources" value="False" hidden oninput="turnOn('on_1', 'off_1', 'set_1')" checked>
+                    <input type="radio" id="on_rad_1" name="remove_sources" value="false" hidden oninput="turnOn('on_1', 'off_1', 'set_1')" checked>
                     <label for="on_rad_1" id="on_1" class="label_green"><b>ON</b></label>
+                {% endif %}
+                </td>
+            </tr>
+            <tr>
+                <td class="py-1 fond-bold inter darkblue text-lg border-b border-slate-800" id="set_2"><b>Message history:</b></td>
+                <td class="py-1 fond-bold inter darkblue text-lg">
+                {% if data['message_history'] %}
+                <input type="radio" id="off_rad_2" name="message_history" value="false" hidden oninput="turnOff('on_2', 'off_2', 'set_2')">
+                    <label for="off_rad_2" id="off_2" class="label_gray"><b>OFF</b></label>
+                    <p class="inline-block mx-1"> - </p>
+                    <input type="radio" id="on_rad_2" name="message_history" value="true" hidden oninput="turnOn('on_2', 'off_2', 'set_2')" checked>
+                    <label for="on_rad_2" id="on_2" class="label_green"><b>ON</b></label>
+                {% else %}
+                    <input type="radio" id="off_rad_2" name="message_history" value="false" hidden oninput="turnOff('on_2', 'off_2', 'set_2')" checked>
+                    <label for="off_rad_2" id="off_2" class="label_red"><b>OFF</b></label>
+                    <p class="inline-block mx-1"> - </p>
+                    <input type="radio" id="on_rad_2" name="message_history" value="true" hidden oninput="turnOn('on_2', 'off_2', 'set_2')">
+                    <label for="on_rad_2" id="on_2" class="label_gray"><b>ON</b></label>
                 {% endif %}
                 </td>
             </tr>

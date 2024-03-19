@@ -2,6 +2,8 @@ import re
 import argparse
 import json
 import os
+import random
+import string
 from uuid import uuid4
 
 # GPT Library
@@ -15,6 +17,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
+
 
 UPLOAD_FOLDER = 'data/'
 # ALLOWED_EXTENSIONS = {'json'}
@@ -60,14 +63,15 @@ def saveSettings(request, file):
         data = json.load(f)
         f.close()
     with open(file, "w") as f:
-        data["file_input"] = request.form["file_input"]
-        data["remove_sources"] = request.form["remove_sources"]
+        data["file_input"] = bool(request.form["file_input"] == "true")
+        data["remove_sources"] = bool(request.form["remove_sources"] == "true")
         data["port"] = request.form["port"]
         # data["model"] = request.form["model"] #Considering to implement this
         data["keyword"] = request.form["keyword"]
         data["provider"] = request.form["provider"]
         data["tone"] = request.form["tone"]
         data["system_prompt"] = request.form["system_prompt"]
+        data["message_history"] = bool(request.form["message_history"] == "true")
         file = request.files["cookie_file"]
         if (args.private_mode):
             data["token"] = request.form["token"]
@@ -101,8 +105,12 @@ def applySettings(file):
         args.remove_sources = data["remove_sources"]
         args.tone = data["tone"]
         args.system_prompt = data["system_prompt"]
+        args.enable_history = data["message_history"]
         f.close()
     return
+
+def createID(length=5):
+    return ''.join(random.choices(string.ascii_letters + string.digits, k=length))
 
 @app.route("/", methods=["GET", "POST"])
 async def index() -> str:
@@ -150,14 +158,22 @@ async def index() -> str:
             exit()
     else:
         cookies = {"a": "b"} # Dummy cookies
+
+    
+    if (args.enable_history):
+        print("History enabled")
+        message_history.append({"role": "user", "content": question})
+    else:
+        print("History disabled")
+        message_history.clear()
+        message_history.append({"role": "system", "content": args.system_prompt})
+        message_history.append({"role": "user", "content": question})
+
     # Set with provider
     response = (
         await PROVIDERS[args.provider].create_async(
             model=args.model,
-            messages=[
-                {"role": "system", "content": args.system_prompt}, 
-                {"role": "user", "content": question}
-            ],
+            messages=message_history,
             cookies=cookies,
             auth=True,
             tone=tone
@@ -170,7 +186,7 @@ async def index() -> str:
 
     # Cleans the response from the resources links
     # INFO: Unsupported escape sequence in string literal
-    if (str(args.remove_sources) == "True"):
+    if (args.remove_sources):
         if re.search(r"\[\^[0-9]+\^\]\[[0-9]+\]", resp_str):
             resp_str = resp_str.split("\n\n")
             if len(resp_str) > 1:
@@ -262,6 +278,12 @@ if __name__ == "__main__":
         help="Use a private token to access the API",
     )
     parser.add_argument(
+        "--enable-history",
+        action='store_true',
+        required=False,
+        help="Enable the history of the messages",
+    )
+    parser.add_argument(
         "--password",
         action='store',
         required=False,
@@ -337,8 +359,9 @@ if __name__ == "__main__":
 
         if (args.file_input == False):
             args.file_input = data["file_input"]
-        else:
-            data["file_input"] = args.file_input
+        
+        if (args.enable_history == False):
+            args.enable_history = data["message_history"]
 
         if (args.port != None):
             data["port"] = args.port
@@ -372,8 +395,6 @@ if __name__ == "__main__":
 
         if (args.remove_sources == False):
             args.remove_sources = data["remove_sources"]
-        else:
-            data["remove_sources"] = args.remove_sources
 
         if (args.private_mode and data["token"] == ""):
             token = str(uuid4())
@@ -384,6 +405,7 @@ if __name__ == "__main__":
         json.dump(data, f)
         f.close()
 
+    message_history = [{"role": "system", "content": args.system_prompt}]
 
     if (args.enable_gui):
         # Asks for password to set to lock the settings page

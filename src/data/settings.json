@@ -1,8 +1,9 @@
 {
     "password": "",
     "token": "",
-    "file_input": "True",
-    "remove_sources": "True",
+    "message_history": false,
+    "file_input": true,
+    "remove_sources": true,
     "port": "5500",
     "model": "gpt-4",
     "provider": "Bing",
