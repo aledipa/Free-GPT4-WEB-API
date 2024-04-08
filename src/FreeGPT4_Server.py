@@ -49,6 +49,7 @@ PROVIDERS = {
     "Wewordle": g4f.Provider.Wewordle,
     "You": g4f.Provider.You,
     "Yqcloud": g4f.Provider.Yqcloud,
+    "Gemini": g4f.Provider.Gemini,
 }
 
 # Available Bing's tones
@@ -58,6 +59,203 @@ TONES = [
     "Precise"
 ]
 
+print(
+    """
+    FreeGPT4 Web API - A Web API for GPT-4
+    Repo: github.com/aledipa/FreeGPT4-WEB-API
+    By: Alessandro Di Pasquale
+
+    GPT4Free Credits: github.com/xtekky/gpt4free
+    """,
+)
+parser = argparse.ArgumentParser()
+parser.add_argument(
+    "--remove-sources",
+    action='store_true',
+    required=False,
+    help="Remove the sources from the response",
+)
+parser.add_argument(
+    "--enable-gui",
+    action='store_true',
+    required=False,
+    help="Use a graphical interface for settings",
+)
+parser.add_argument(
+    "--private-mode",
+    action='store_true',
+    required=False,
+    help="Use a private token to access the API",
+)
+parser.add_argument(
+    "--enable-history",
+    action='store_true',
+    required=False,
+    help="Enable the history of the messages",
+)
+parser.add_argument(
+    "--password",
+    action='store',
+    required=False,
+    help="Optional, set a password for the settings page [mandatory in docker envirtonment]",
+)
+parser.add_argument(
+    "--cookie-file",
+    action='store',
+    required=False,
+    type=str,
+    help="Use a cookie file",
+)
+parser.add_argument(
+    "--file-input",
+    action='store_true',
+    required=False,
+    help="Add the file as input support",
+)
+parser.add_argument(
+    "--port",
+    action='store',
+    required=False,
+    type=str,
+    help="Change the port (default: 5500)",
+)
+parser.add_argument(
+    "--model",
+    action='store',
+    required=False,
+    type=str,
+    help="Change the model (default: gpt_4)",
+)
+parser.add_argument(
+    "--provider",
+    action='store',
+    required=False,
+    type=str,
+    help="Change the provider (default: Bing)",
+)
+parser.add_argument(
+    "--keyword",
+    action='store',
+    required=False,
+    type=str,
+    help="Add the keyword support",
+)
+parser.add_argument(
+    "--tone",
+    action='store',
+    required=False,
+    type=str,
+    help="Specify the model's tone if supported (Bing's default: Precise)",
+)
+parser.add_argument(
+    "--system-prompt",
+    action='store',
+    required=False,
+    type=str,
+    help="Use a system prompt to 'customize' the answers",
+)
+
+args, unknown = parser.parse_known_args()
+
+# Loads the settings from the file
+with open(SETTINGS_FILE, "r") as f:
+    data = json.load(f)
+    f.close()
+# Updates the settings
+with open(SETTINGS_FILE, "w") as f:
+    if (args.keyword != None):
+        data["keyword"] = args.keyword
+    else:
+        args.keyword = data["keyword"]
+
+    if (args.file_input == False):
+        args.file_input = data["file_input"]
+    
+    if (args.enable_history == False):
+        args.enable_history = data["message_history"]
+
+    if (args.port != None):
+        data["port"] = args.port
+    else:
+        args.port = data["port"]
+
+    if (args.provider != None):
+        data["provider"] = args.provider
+    else:
+        args.provider = data["provider"]
+
+    if (args.model != None):
+        data["model"] = args.model
+    else:
+        args.model = data["model"]
+
+    if (args.cookie_file != None):
+        data["cookie_file"] = args.cookie_file
+    else:
+        args.cookie_file = data["cookie_file"]
+
+    if (args.tone != None):
+        data["tone"] = args.tone
+    else:
+        args.tone = data["tone"]
+    
+    if (args.system_prompt != None):
+        data["system_prompt"] = args.system_prompt
+    else:
+        args.system_prompt = data["system_prompt"]
+
+    if (args.remove_sources == False):
+        args.remove_sources = data["remove_sources"]
+
+    if (args.private_mode and data["token"] == ""):
+        token = str(uuid4())
+        data["token"] = token
+    elif (data["token"] != ""):
+        token = data["token"]
+
+    json.dump(data, f)
+    f.close()
+
+message_history = [{"role": "system", "content": args.system_prompt}]
+
+if (args.enable_gui):
+    # Asks for password to set to lock the settings page
+    # Checks if settings.json contains a password
+    if (data["password"] == ""):
+        try:
+            if (args.password != None):
+                password = args.password
+                confirm_password = password
+            else:
+                password = getpass.getpass("Settings page password:\n > ")
+                confirm_password = getpass.getpass("Confirm password:\n > ")
+            if(password == "" or confirm_password == ""):
+                print("[X] Password cannot be empty")
+                exit()
+            if (password != confirm_password):
+                print("[X] Passwords don't match")
+                exit()
+            else:
+                password = generate_password_hash(password)
+                confirm_password = generate_password_hash(confirm_password)
+                print("[V] Password set.")
+                try:
+                    data["password"] = password
+                    with open(SETTINGS_FILE, "w") as f:
+                        json.dump(data, f)
+                        f.close()
+                        print("[V] Password saved.") 
+                except Exception as error:
+                    print("[X] Error:", error)
+                    exit()
+
+        except Exception as error:
+            print("[X] Error:", error)
+            exit()
+else:
+    print("[!] GUI disabled")
+
+# Saves the settings to the file
 def saveSettings(request, file):
     with open(file, "r") as f:
         data = json.load(f)
@@ -143,7 +341,7 @@ async def index() -> str:
         return "<p id='response'>Please enter a question</p>"
     
     # Gets the response from the bot
-    print(PROVIDERS[args.provider].params)  # supported args
+    # print(PROVIDERS[args.provider].params)  # supported args
     print("\nCookies: " + str(len(args.cookie_file)))
     print("\nInput: " + question)
     print("\nTone: " + tone)
@@ -171,8 +369,9 @@ async def index() -> str:
 
     # Set with provider
     response = (
-        await PROVIDERS[args.provider].create_async(
+        await g4f.ChatCompletion.create_async(
             model=args.model,
+            provider=args.provider,
             messages=message_history,
             cookies=cookies,
             auth=True,
@@ -211,8 +410,15 @@ def auth():
 
 @app.route("/login", methods=["GET", "POST"])
 async def login():
+    if (args.enable_gui):
+        return render_template("login.html", **locals())
+    else:
+        return "The GUI is disabled. In order to enable it, use the --enable-gui argument."
+
+@app.route("/settings", methods=["GET", "POST"])
+async def settings():
     if (request.method == "GET"):
-        return redirect("/settings", code=302)
+        return redirect("/login", code=302)
     if (auth()):
         try:
             providers=PROVIDERS
@@ -223,13 +429,6 @@ async def login():
             return "Error: " + str(error)
     else:
         return render_template("login.html", **locals())
-
-@app.route("/settings", methods=["GET", "POST"])
-async def settings():
-    if (args.enable_gui):
-        return render_template("login.html", **locals())
-    else:
-        return "The GUI is disabled. In order to enable it, use the --enable-gui argument."
 
 @app.route("/save", methods=["POST"])
 async def save():
@@ -249,200 +448,5 @@ async def save():
         return render_template("login.html", **locals())
 
 if __name__ == "__main__":
-    print(
-        """
-        FreeGPT4 Web API - A Web API for GPT-4
-        Repo: github.com/aledipa/FreeGPT4-WEB-API
-        By: Alessandro Di Pasquale
-
-        GPT4Free Credits: github.com/xtekky/gpt4free
-        """,
-    )
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--remove-sources",
-        action='store_true',
-        required=False,
-        help="Remove the sources from the response",
-    )
-    parser.add_argument(
-        "--enable-gui",
-        action='store_true',
-        required=False,
-        help="Use a graphical interface for settings",
-    )
-    parser.add_argument(
-        "--private-mode",
-        action='store_true',
-        required=False,
-        help="Use a private token to access the API",
-    )
-    parser.add_argument(
-        "--enable-history",
-        action='store_true',
-        required=False,
-        help="Enable the history of the messages",
-    )
-    parser.add_argument(
-        "--password",
-        action='store',
-        required=False,
-        help="Optional, set a password for the settings page [mandatory in docker envirtonment]",
-    )
-    parser.add_argument(
-        "--cookie-file",
-        action='store',
-        required=False,
-        type=str,
-        help="Use a cookie file",
-    )
-    parser.add_argument(
-        "--file-input",
-        action='store_true',
-        required=False,
-        help="Add the file as input support",
-    )
-    parser.add_argument(
-        "--port",
-        action='store',
-        required=False,
-        type=str,
-        help="Change the port (default: 5500)",
-    )
-    parser.add_argument(
-        "--model",
-        action='store',
-        required=False,
-        type=str,
-        help="Change the model (default: gpt_4)",
-    )
-    parser.add_argument(
-        "--provider",
-        action='store',
-        required=False,
-        type=str,
-        help="Change the provider (default: Bing)",
-    )
-    parser.add_argument(
-        "--keyword",
-        action='store',
-        required=False,
-        type=str,
-        help="Add the keyword support",
-    )
-    parser.add_argument(
-        "--tone",
-        action='store',
-        required=False,
-        type=str,
-        help="Specify the model's tone if supported (Bing's default: Precise)",
-    )
-    parser.add_argument(
-        "--system-prompt",
-        action='store',
-        required=False,
-        type=str,
-        help="Use a system prompt to 'customize' the answers",
-    )
-    args = parser.parse_args()
-
-    # Loads the settings from the file
-    with open(SETTINGS_FILE, "r") as f:
-        data = json.load(f)
-        f.close()
-    # Updates the settings
-    with open(SETTINGS_FILE, "w") as f:
-        if (args.keyword != None):
-            data["keyword"] = args.keyword
-        else:
-            args.keyword = data["keyword"]
-
-        if (args.file_input == False):
-            args.file_input = data["file_input"]
-        
-        if (args.enable_history == False):
-            args.enable_history = data["message_history"]
-
-        if (args.port != None):
-            data["port"] = args.port
-        else:
-            args.port = data["port"]
-
-        if (args.provider != None):
-            data["provider"] = args.provider
-        else:
-            args.provider = data["provider"]
-
-        if (args.model != None):
-            data["model"] = args.model
-        else:
-            args.model = data["model"]
-
-        if (args.cookie_file != None):
-            data["cookie_file"] = args.cookie_file
-        else:
-            args.cookie_file = data["cookie_file"]
-
-        if (args.tone != None):
-            data["tone"] = args.tone
-        else:
-            args.tone = data["tone"]
-        
-        if (args.system_prompt != None):
-            data["system_prompt"] = args.system_prompt
-        else:
-            args.system_prompt = data["system_prompt"]
-
-        if (args.remove_sources == False):
-            args.remove_sources = data["remove_sources"]
-
-        if (args.private_mode and data["token"] == ""):
-            token = str(uuid4())
-            data["token"] = token
-        elif (data["token"] != ""):
-            token = data["token"]
-
-        json.dump(data, f)
-        f.close()
-
-    message_history = [{"role": "system", "content": args.system_prompt}]
-
-    if (args.enable_gui):
-        # Asks for password to set to lock the settings page
-        # Checks if settings.json contains a password
-        if (data["password"] == ""):
-            try:
-                if (args.password != None):
-                    password = args.password
-                    confirm_password = password
-                else:
-                    password = getpass.getpass("Settings page password:\n > ")
-                    confirm_password = getpass.getpass("Confirm password:\n > ")
-                if(password == "" or confirm_password == ""):
-                    print("[X] Password cannot be empty")
-                    exit()
-                if (password != confirm_password):
-                    print("[X] Passwords don't match")
-                    exit()
-                else:
-                    password = generate_password_hash(password)
-                    confirm_password = generate_password_hash(confirm_password)
-                    print("[V] Password set.")
-                    try:
-                        data["password"] = password
-                        with open(SETTINGS_FILE, "w") as f:
-                            json.dump(data, f)
-                            f.close()
-                            print("[V] Password saved.") 
-                    except Exception as error:
-                        print("[X] Error:", error)
-                        exit()
-
-            except Exception as error:
-                print("[X] Error:", error)
-                exit()
-    else:
-        print("[!] GUI disabled")
-
-    #Starts the server, change the port if needed
+    # Starts the server, change the port if needed
     app.run("0.0.0.0", port=args.port, debug=False)

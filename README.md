@@ -11,7 +11,7 @@ FreeGPT4-WEB-API is a python server that allows you to have a self-hosted GPT-4 
 ## Requirements
 
 - Python 3
-- Flask
+- Flask[async]
 - g4f (from [here](https://github.com/xtekky/gpt4free)).
 - aiohttp
 - auth
@@ -26,37 +26,45 @@ To install the required libraries, you can use the following command:
 To run the server, use the following command:
 
 ```shell
-python3 FreeGPT4_Server.py [-h] [--remove-sources] [--enable-gui]
-                          [--password PASSWORD] [--cookie-file COOKIE_FILE]
-                          [--file-input] [--port PORT] [--model MODEL]
-                          [--provider PROVIDER] [--keyword KEYWORD]
-                          [--tone TONE] [--system-prompt SYSTEM_PROMPT]
+python3 FreeGPT4_Server.py [-h] [--remove-sources] [--enable-gui] 
+                           [--private-mode] [--enable-history] [--password PASSWORD] 
+                           [--cookie-file COOKIE_FILE] [--file-input] [--port PORT] 
+                           [--model MODEL] [--provider PROVIDER] [--keyword KEYWORD] 
+                           [--tone TONE] [--system-prompt SYSTEM_PROMPT]
 ```
 
 
 Options:
 
-```-h, --help``` Show this help message and exit
-
-```--remove-sources``` Remove the sources from the response
-
-```--enable-gui``` Use a graphical interface for settings. If you're going to enable it, a password set is needed in order to protect the settings web page.
-
-```--cookie-file COOKIE_FILE``` Use a cookie file
-
-```--file-input``` Add the file as input support
-
-```--port PORT``` Change the port (default: 5500)
-
-```--model MODEL``` Change the model (default: gpt_4)
-
-```--provider PROVIDER``` Change the provider (default: Bing)
-
-```--keyword KEYWORD``` Add the keyword support
-
-```--tone TONE``` Specify the model's tone if supported (Bing's default: Precise)
-
-```--system-prompt SYSTEM_PROMPT``` Use a system prompt to 'customize' the answers
+  `-h, --help`            show this help message and exit
+  
+  `--remove-sources`      Remove the sources from the response
+  
+  `--enable-gui`          Use a graphical interface for settings
+  
+  `--private-mode`        Use a private token to access the API
+  
+  `--enable-history`      Enable the history of the messages
+  
+  `--password PASSWORD`   Optional, set a password for the settings page [mandatory in docker envirtonment]
+  
+  `--cookie-file COOKIE_FILE`
+                        Use a cookie file
+  
+  `--file-input`          Add the file as input support
+  
+  `--port PORT`           Change the port (default: 5500)
+  
+  `--model MODEL`         Change the model (default: gpt_4)
+  
+  `--provider PROVIDER`   Change the provider (default: Bing)
+  
+  `--keyword KEYWORD`     Add the keyword support
+  
+  `--tone TONE`           Specify the model's tone if supported (Bing's default: Precise)
+  
+  `--system-prompt SYSTEM_PROMPT`
+                        Use a system prompt to 'customize' the answers
 
 
 If you want to use it with curl (credits to [@ayoubelmhamdi](https://github.com/ayoubelmhamdi)):
@@ -68,8 +76,8 @@ curl -s -F file=@"${fileTMP}" http://127.0.0.1:5500/
 
 GUI Preview:
 
-<img src="https://cdn.discordapp.com/attachments/490563817915416586/1161659745246117960/login.png?ex=65e87271&is=65d5fd71&hm=1abe67d48fe0cb190a2da2ca821c2593a1a26309def341e6653edf5365743418&" width="408" height="290" />
-<img src="https://cdn.discordapp.com/attachments/784094229830959145/1215370856960888872/Screenshot_2024-03-07_alle_19.44.32.png?ex=65fc8150&is=65ea0c50&hm=6e2f4f746d87f999db464565773c0171a5601be641bda2ffaa76832b0701728f&" width="408" height="290" />
+<img src="./img/login.png" width="408" height="290" />
+<img src="./img/settings.png" width="408" height="290" />
 
 ## Docker Installation
 <img src="./img/docker-logo.webp" width="400" height="100" />
@@ -124,9 +132,9 @@ FreeGPT4-WEB-API uses the Flask and GPT4Free libraries. Flask is a micro web fra
 - Any kind of contribution to the repository is welcome.
 
 ## Todo ✔️
-- [x] Update Demo Server
+- [ ] Fix Demo Server
+- [ ] Update README
 - [x] Fix Repository
 - [x] Update Docker Image
 - [x] Add A.I. provider choice
 - [x] Add GUI
-- [ ] Update README
