@@ -91,7 +91,7 @@
                 <td class="py-1 fond-bold inter darkblue text-lg border-b border-slate-800"><b>A.I. Provider:</b></td>
                 <td class="py-1 fond-bold inter darkblue text-lg">
                     <b>
-                        <select name="provider" class="input outline-none py-1 px-2 rounded-lg inter w-24">
+                        <select name="provider" id="provider" class="input outline-none py-1 px-2 rounded-lg inter w-24">
                             <option value="{{ data['provider'] }}"> {{ data['provider'] }} - Default </option>
                             {% for key, value in providers.items() %}
                                 <option value="{{ key }}"> {{ key }} </option>
@@ -100,19 +100,24 @@
                     </b>
                 </td>
             </tr>
-            <!-- Considering to implement this -->
-            <!-- <tr>
+            <tr>
                 <td class="py-1 fond-bold inter darkblue text-lg border-b border-slate-800"><b>A.I. Model:</b></td>
                 <td class="py-1 fond-bold inter darkblue text-lg">
                     <b>
-                        <select name="model" class="input outline-none py-1 px-2 rounded-lg inter w-24">
-                            <option value="option1">Option 1</option>
-                            <option value="option2">Option 2</option>
-                            <option value="option3">Option 3</option>
+                        <select name="model" id="model" class="input outline-none py-1 px-2 rounded-lg inter w-24">
+                            {% if data['provider'] == "Auto" %}
+                                {% for model in generic_models %}
+                                    <option value="{{ model }}"> {{ model }} </option>
+                                {% endfor %}
+                            {% else %}
+                                {% for model in providers[data['provider']].models %}
+                                    <option value="{{ model }}"> {{ model }} </option>
+                                {% endfor %}
+                            {% endif %}
                         </select>
                     </b>
                 </td>
-            </tr> -->
+            </tr>
             <tr>
                 <td class="py-1 fond-bold inter darkblue text-lg border-b border-slate-800"><b>Cookies:</b></td>
                 <td class="py-1 fond-bold inter darkblue text-lg">
@@ -131,18 +136,6 @@
                 <td class="py-1 fond-bold inter darkblue text-lg">
                     <b>
                         <input type="text" id="keyword" name="keyword" class="input outline-none py-1 px-2 rounded-lg inter w-24" placeholder="i.e. input" value="{{ data['keyword'] }}">
-                    </b>
-                </td>
-            </tr>
-            <tr>
-                <td class="py-1 fond-bold inter darkblue text-lg border-b border-slate-800"><b>Tone:</b></td>
-                <td class="py-1 fond-bold inter darkblue text-lg">
-                    <b>
-                        <select name="tone" class="input outline-none py-1 px-2 rounded-lg inter w-24">
-                            <option value="Precise">Precise</option>
-                            <option value="Creative">Creative</option>
-                            <option value="Balanced">Balanced</option>
-                        </select>
                     </b>
                 </td>
             </tr>
@@ -166,14 +159,12 @@
             <label for="save" id="save_label" class="button outline-none py-3 px-4 pl-5 rounded-lg darkblue_bg inter text-white text-md mt-3 hover:opacity-95 w-40" hidden>Save and apply</label>
             <label id="save_label_dummy" class="button outline-none py-3 px-4 pl-5 rounded-lg bg-slate-300 inter text-white text-md mt-3 w-40">Save and apply</label>
         </div>
-          
     </form>
-
-
     
     {% endblock %}
 </body>
 <!-- script import -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 <script src="{{ url_for('static', filename='js/script.js') }}" type="text/javascript"></script>
 </html>
 <!-- Path: src/templates/settings.html -->

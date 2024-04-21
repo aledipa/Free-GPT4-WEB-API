@@ -33,3 +33,32 @@ function showElement(id_to_show) {
 function hideElement(id_to_hide) {
     document.getElementById(id_to_hide).hidden = true;
 }
+
+// Gets available models for choosen A.I. Provider
+$(document).ready(function(){
+    $("#provider").change(function(){
+      var inputValue = $(this).val();
+      $.ajax({
+        url: '/models',
+        data: {
+          'provider': inputValue
+        },
+        success: function(response) {
+            var select = document.getElementById("model");
+
+            // Remove existing models
+            while (select.firstChild) {
+                select.removeChild(select.firstChild);
+            }
+
+            // Add the new models
+            for (var i=0; i<response.length; i++) {
+                var option = document.createElement("option");
+                option.innerText = response[i];
+                option.value = response[i];
+                select.add(option);
+            }
+        }
+      });
+    });
+  }); 

@@ -16,8 +16,9 @@ import getpass
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 
-app = Flask(__name__)
 
+
+app = Flask(__name__)
 
 UPLOAD_FOLDER = 'data/'
 # ALLOWED_EXTENSIONS = {'json'}
@@ -30,6 +31,7 @@ SETTINGS_FILE = "./data/settings.json"
 
 # Available providers
 PROVIDERS = {
+    "Auto": "",
     "AItianhu": g4f.Provider.AItianhu,
     "Acytoo": g4f.Provider.Acytoo,
     "Aichat": g4f.Provider.Aichat,
@@ -52,12 +54,8 @@ PROVIDERS = {
     "Gemini": g4f.Provider.Gemini,
 }
 
-# Available Bing's tones
-TONES = [
-    "Creative",
-    "Balanced",
-    "Precise"
-]
+GENERIC_MODELS = ["gpt-3.5-turbo", "gpt-4"]
+
 
 print(
     """
@@ -141,13 +139,6 @@ parser.add_argument(
     help="Add the keyword support",
 )
 parser.add_argument(
-    "--tone",
-    action='store',
-    required=False,
-    type=str,
-    help="Specify the model's tone if supported (Bing's default: Precise)",
-)
-parser.add_argument(
     "--system-prompt",
     action='store',
     required=False,
@@ -156,6 +147,13 @@ parser.add_argument(
 )
 
 args, unknown = parser.parse_known_args()
+
+# Get the absolute path of the script
+script_path = os.path.abspath(__file__)
+# Get the directory of the script
+script_dir = os.path.dirname(script_path)
+# Change the current working directory
+os.chdir(script_dir)
 
 # Loads the settings from the file
 with open(SETTINGS_FILE, "r") as f:
@@ -193,11 +191,6 @@ with open(SETTINGS_FILE, "w") as f:
         data["cookie_file"] = args.cookie_file
     else:
         args.cookie_file = data["cookie_file"]
-
-    if (args.tone != None):
-        data["tone"] = args.tone
-    else:
-        args.tone = data["tone"]
     
     if (args.system_prompt != None):
         data["system_prompt"] = args.system_prompt
@@ -264,10 +257,9 @@ def saveSettings(request, file):
         data["file_input"] = bool(request.form["file_input"] == "true")
         data["remove_sources"] = bool(request.form["remove_sources"] == "true")
         data["port"] = request.form["port"]
-        # data["model"] = request.form["model"] #Considering to implement this
+        data["model"] = request.form["model"] #Considering to implement this
         data["keyword"] = request.form["keyword"]
         data["provider"] = request.form["provider"]
-        data["tone"] = request.form["tone"]
         data["system_prompt"] = request.form["system_prompt"]
         data["message_history"] = bool(request.form["message_history"] == "true")
         file = request.files["cookie_file"]
@@ -301,7 +293,6 @@ def applySettings(file):
         args.cookie_file = data["cookie_file"]
         args.token = data["token"]
         args.remove_sources = data["remove_sources"]
-        args.tone = data["tone"]
         args.system_prompt = data["system_prompt"]
         args.enable_history = data["message_history"]
         f.close()
@@ -319,16 +310,12 @@ async def index() -> str:
     # Starts the bot and gets the input
     print("Initializing...")
     question = None
-    tone = None
 
     print("start")
     if request.method == "GET":
         question = request.args.get(args.keyword) #text
-        tone = request.args.get("tone") #tone
         if (args.private_mode and request.args.get("token") != data["token"]):
             return "<p id='response'>Invalid token</p>"
-        if (tone == None or tone not in TONES):
-            tone = args.tone
         print("get")
     else:
         file = request.files["file"]
@@ -344,7 +331,6 @@ async def index() -> str:
     # print(PROVIDERS[args.provider].params)  # supported args
     print("\nCookies: " + str(len(args.cookie_file)))
     print("\nInput: " + question)
-    print("\nTone: " + tone)
     if (len(args.cookie_file) != 0):
         try:
             cookies = json.load(open(args.cookie_file)) # Loads the cookies from the file
@@ -367,6 +353,9 @@ async def index() -> str:
         message_history.append({"role": "system", "content": args.system_prompt})
         message_history.append({"role": "user", "content": question})
 
+    if (args.provider == "Auto"):
+        args.provider = ""
+
     # Set with provider
     response = (
         await g4f.ChatCompletion.create_async(
@@ -374,10 +363,11 @@ async def index() -> str:
             provider=args.provider,
             messages=message_history,
             cookies=cookies,
-            auth=True,
-            tone=tone
         )
     )
+
+    print(response)
+
     #Joins the response into a single string
     resp_str = ""
     for message in response:
@@ -422,6 +412,7 @@ async def settings():
     if (auth()):
         try:
             providers=PROVIDERS
+            generic_models=GENERIC_MODELS
             data = json.loads(open(SETTINGS_FILE).read())
             return render_template("settings.html", **locals())
         except Exception as error:
@@ -446,6 +437,16 @@ async def save():
             return "Error: " + str(error)
     else:
         return render_template("login.html", **locals())
+
+@app.route("/models", methods=["GET"])
+async def get_models():
+    provider = request.args.get("provider")
+    if (provider == "Auto"):
+        return GENERIC_MODELS
+    try:
+        return PROVIDERS[provider].models
+    except:
+        return ["default"]
 
 if __name__ == "__main__":
     # Starts the server, change the port if needed

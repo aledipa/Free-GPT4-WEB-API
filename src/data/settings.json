@@ -6,8 +6,7 @@
     "remove_sources": true,
     "port": "5500",
     "model": "gpt-4",
-    "provider": "Bing",
-    "tone": "Precise",
+    "provider": "",
     "keyword": "text",
     "cookie_file": "data/cookies.json",
     "system_prompt": ""

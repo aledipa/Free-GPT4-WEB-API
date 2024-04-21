@@ -3,3 +3,5 @@ auth
 Flask[async]
 g4f
 Werkzeug
+aiohttp_socks
+nodriver

@@ -1,9 +1,9 @@
 FROM python:3.12-slim
 
 WORKDIR /app/
-COPY . .
+COPY --chown=www-data:www-data . .
 
-RUN apt update && apt install gcc -y
+RUN apt update && apt install gcc chromium -y
 RUN pip3 install --upgrade pip
 RUN pip3 install -r requirements.txt
 
