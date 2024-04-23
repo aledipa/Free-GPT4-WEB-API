@@ -4,6 +4,8 @@
 [![Docker Image CI](https://github.com/aledipa/Free-GPT4-WEB-API/actions/workflows/docker-image.yml/badge.svg)](https://github.com/aledipa/Free-GPT4-WEB-API/actions/workflows/docker-image.yml)
 [![GPT4-API-PyApp](https://github.com/aledipa/Free-GPT4-WEB-API/actions/workflows/python-app.yml/badge.svg)](https://github.com/aledipa/Free-GPT4-WEB-API/actions/workflows/python-app.yml)
 
+<img src="https://status.freegpt4.ddns.net/getstatus" width="256" height="40" />
+
 # Free-GPT4-WEB-API
 
 FreeGPT4-WEB-API is a python server that allows you to have a self-hosted GPT-4 Unlimited and Free WEB API, via the latest Bing's AI.
@@ -125,6 +127,10 @@ The server can be configured by editing the `FreeGPT4_Server.py` file. You can c
 ## Main Libraries
 
 FreeGPT4-WEB-API uses the Flask and GPT4Free libraries. Flask is a micro web framework for Python that allows you to easily create web applications. GPT4Free is a library that provides an interface to the Bing's GPT-4, credits to [@xtekky's GPT4Free](https://github.com/xtekky/gpt4free).
+
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=aledipa/Free-GPT4-WEB-API&type=Date)](https://star-history.com/#aledipa/Free-GPT4-WEB-API&Date)
 
 ## Notes
 
