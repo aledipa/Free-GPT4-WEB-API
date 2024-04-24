@@ -21,7 +21,6 @@ from werkzeug.utils import secure_filename
 app = Flask(__name__)
 
 UPLOAD_FOLDER = 'data/'
-# ALLOWED_EXTENSIONS = {'json'}
 
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1000 * 1000 # 16 MB
@@ -257,14 +256,16 @@ def saveSettings(request, file):
         data["file_input"] = bool(request.form["file_input"] == "true")
         data["remove_sources"] = bool(request.form["remove_sources"] == "true")
         data["port"] = request.form["port"]
-        data["model"] = request.form["model"] #Considering to implement this
+        data["model"] = request.form["model"]
         data["keyword"] = request.form["keyword"]
         data["provider"] = request.form["provider"]
         data["system_prompt"] = request.form["system_prompt"]
         data["message_history"] = bool(request.form["message_history"] == "true")
         file = request.files["cookie_file"]
-        if (args.private_mode):
+        if (args.private_mode or bool(request.form["private_mode"] == "true")):
             data["token"] = request.form["token"]
+        else:
+            data["token"] = ""
         #checks if the file is not empty
         if file.filename != '':
             #checks if the file is a json file
@@ -298,8 +299,6 @@ def applySettings(file):
         f.close()
     return
 
-def createID(length=5):
-    return ''.join(random.choices(string.ascii_letters + string.digits, k=length))
 
 @app.route("/", methods=["GET", "POST"])
 async def index() -> str:
@@ -356,7 +355,6 @@ async def index() -> str:
     if (args.provider == "Auto"):
         args.provider = ""
 
-    # Set with provider
     response = (
         await g4f.ChatCompletion.create_async(
             model=args.model,
@@ -374,7 +372,6 @@ async def index() -> str:
         resp_str += message
 
     # Cleans the response from the resources links
-    # INFO: Unsupported escape sequence in string literal
     if (args.remove_sources):
         if re.search(r"\[\^[0-9]+\^\]\[[0-9]+\]", resp_str):
             resp_str = resp_str.split("\n\n")
@@ -448,6 +445,10 @@ async def get_models():
     except:
         return ["default"]
 
+@app.route("/generatetoken", methods=["GET", "POST"])
+async def get_token():
+    return str(uuid4())
+
 if __name__ == "__main__":
     # Starts the server, change the port if needed
-    app.run("0.0.0.0", port=args.port, debug=False)
+    app.run("0.0.0.0", port=args.port, debug=True)

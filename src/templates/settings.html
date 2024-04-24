@@ -76,14 +76,45 @@
                 </td>
             </tr>
             <tr>
+                <td class="py-1 fond-bold inter darkblue text-lg border-b border-slate-800" id="set_3">
+                    <b>Private Mode:</b>
+                    <br>
+                    <p id="warning_0" class="text-sm label_darkorange" hidden> <b>Warning:</b> your current token will be deleted </p>
+                    <input name="token" id="token" value="{{ data['token'] }}" hidden/>
+                    {% if data['token']|length > 0 %}
+                    <span id="warning_1" class="text-sm blue inline-block">
+                    {% else %}
+                    <span id="warning_1" class="text-sm blue inline-block hidden" hidden>
+                    {% endif %}
+                        <b>Your Token: </b> <i id="token_text" onclick="copyTextToClipboardFromName('token');">{{ data['token'] }}</i>
+                        <img id="copy_icon" src="{{ url_for('static', filename='img/copy(Gregor_Cresnar).png') }}" width="16" class="inline-block" alt="Copy" onclick="copy('token', this.id, 'Copied!');"/>
+                    </span>
+                </td>
+                <td class="py-1 fond-bold inter darkblue text-lg">
+                {% if data['token'] %}
+                <input type="radio" id="off_rad_3" name="private_mode" value="false" hidden oninput="turnOff('on_3', 'off_3', 'set_3'); hideElement('warning_1'); showElement('warning_0');">
+                    <label for="off_rad_3" id="off_3" class="label_gray"><b>OFF</b></label>
+                    <p class="inline-block mx-1"> - </p>
+                    <input type="radio" id="on_rad_3" name="private_mode" value="true" hidden oninput="turnOn('on_3', 'off_3', 'set_3'); showElement('warning_1'); hideElement('warning_0'); createToken('token_text')" checked>
+                    <label for="on_rad_3" id="on_3" class="label_green"><b>ON</b></label>
+                {% else %}
+                    <input type="radio" id="off_rad_3" name="private_mode" value="false" hidden oninput="turnOff('on_3', 'off_3', 'set_3'); hideElement('warning_1'); showElement('warning_0');" checked>
+                    <label for="off_rad_3" id="off_3" class="label_red"><b>OFF</b></label>
+                    <p class="inline-block mx-1"> - </p>
+                    <input type="radio" id="on_rad_3" name="private_mode" value="true" hidden oninput="turnOn('on_3', 'off_3', 'set_3'); showElement('warning_1'); hideElement('warning_0'); createToken('token_text')">
+                    <label for="on_rad_3" id="on_3" class="label_gray"><b>ON</b></label>
+                {% endif %}
+                </td>
+            </tr>
+            <tr>
                 <td class="py-1 fond-bold inter darkblue text-lg border-b border-slate-800">
                     <b>Server port:</b>
                     <br>
-                    <p id="warning_0" class="text-sm label_darkorange" hidden> <b>Warning:</b> the port change will take effect only after you've manually restarted the server </p>
+                    <p id="warning_2" class="text-sm label_darkorange" hidden> <b>Warning:</b> the port change will take effect only after you've manually restarted the server </p>
                 </td>
                 <td class="py-1 fond-bold inter darkblue text-lg">
                     <b>
-                        <input type="number" id="port" name="port" class="input outline-none py-1 px-2 rounded-lg inter w-24" placeholder="Port" value="{{ data['port'] }}" onchange="showElement('warning_0')">
+                        <input type="number" id="port" name="port" class="input outline-none py-1 px-2 rounded-lg inter w-24" placeholder="Port" value="{{ data['port'] }}" onchange="showElement('warning_2')">
                     </b>
                 </td>
             </tr>
@@ -105,6 +136,7 @@
                 <td class="py-1 fond-bold inter darkblue text-lg">
                     <b>
                         <select name="model" id="model" class="input outline-none py-1 px-2 rounded-lg inter w-24">
+                            <option value="{{ data['model'] }}"> {{ data['model'] }} </option>
                             {% if data['provider'] == "Auto" %}
                                 {% for model in generic_models %}
                                     <option value="{{ model }}"> {{ model }} </option>

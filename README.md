@@ -10,6 +10,11 @@
 
 FreeGPT4-WEB-API is a python server that allows you to have a self-hosted GPT-4 Unlimited and Free WEB API, via the latest Bing's AI.
 
+GUI Preview:
+
+<img src="./img/login.png" width="408" height="290" />
+<img src="./img/settings.png" width="408" height="290" />
+
 ## Requirements
 
 - Python 3
@@ -32,7 +37,7 @@ python3 FreeGPT4_Server.py [-h] [--remove-sources] [--enable-gui]
                            [--private-mode] [--enable-history] [--password PASSWORD] 
                            [--cookie-file COOKIE_FILE] [--file-input] [--port PORT] 
                            [--model MODEL] [--provider PROVIDER] [--keyword KEYWORD] 
-                           [--tone TONE] [--system-prompt SYSTEM_PROMPT]
+                           [--system-prompt SYSTEM_PROMPT]
 ```
 
 
@@ -57,13 +62,11 @@ Options:
   
   `--port PORT`           Change the port (default: 5500)
   
-  `--model MODEL`         Change the model (default: gpt_4)
+  `--model MODEL`         Change the model (default: gpt-4)
   
   `--provider PROVIDER`   Change the provider (default: Bing)
   
   `--keyword KEYWORD`     Add the keyword support
-  
-  `--tone TONE`           Specify the model's tone if supported (Bing's default: Precise)
   
   `--system-prompt SYSTEM_PROMPT`
                         Use a system prompt to 'customize' the answers
@@ -76,10 +79,6 @@ fileTMP="$1"
 curl -s -F file=@"${fileTMP}" http://127.0.0.1:5500/
 ```
 
-GUI Preview:
-
-<img src="./img/login.png" width="408" height="290" />
-<img src="./img/settings.png" width="408" height="290" />
 
 ## Docker Installation
 <img src="./img/docker-logo.webp" width="400" height="100" />
@@ -134,13 +133,9 @@ FreeGPT4-WEB-API uses the Flask and GPT4Free libraries. Flask is a micro web fra
 
 ## Notes
 
-- The demo server may be overloaded and not always work as expected. (at the moment it should be fine)
+- The demo server may be overloaded and not always work as expected. (Check the "Demo Server Status" above)
 - Any kind of contribution to the repository is welcome.
 
 ## Todo ✔️
 - [x] Fix Demo Server
-- [ ] Update README
-- [x] Fix Repository
-- [x] Update Docker Image
-- [x] Add A.I. provider choice
-- [x] Add GUI
+- [x] Update README
