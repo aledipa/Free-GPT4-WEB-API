@@ -353,16 +353,22 @@ async def index() -> str:
         message_history.append({"role": "user", "content": question})
 
     if (args.provider == "Auto"):
-        args.provider = ""
-
-    response = (
-        await g4f.ChatCompletion.create_async(
-            model=args.model,
-            provider=args.provider,
-            messages=message_history,
-            cookies=cookies,
+        response = (
+            await g4f.ChatCompletion.create_async(
+                model=args.model,
+                messages=message_history,
+                cookies=cookies,
+            )
         )
-    )
+    else:
+        response = (
+            await g4f.ChatCompletion.create_async(
+                model=args.model,
+                provider=args.provider,
+                messages=message_history,
+                cookies=cookies,
+            )
+        )
 
     print(response)
 
@@ -451,4 +457,4 @@ async def get_token():
 
 if __name__ == "__main__":
     # Starts the server, change the port if needed
-    app.run("0.0.0.0", port=args.port, debug=True)
+    app.run("0.0.0.0", port=args.port, debug=False)
