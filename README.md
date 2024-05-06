@@ -21,8 +21,10 @@ GUI Preview:
 - Flask[async]
 - g4f (from [here](https://github.com/xtekky/gpt4free)).
 - aiohttp
+- aiohttp_socks
 - auth
 - Werkzeug
+
 ## Manual Installation
 To install the required libraries, you can use the following command:
 
@@ -37,7 +39,7 @@ python3 FreeGPT4_Server.py [-h] [--remove-sources] [--enable-gui]
                            [--private-mode] [--enable-history] [--password PASSWORD] 
                            [--cookie-file COOKIE_FILE] [--file-input] [--port PORT] 
                            [--model MODEL] [--provider PROVIDER] [--keyword KEYWORD] 
-                           [--system-prompt SYSTEM_PROMPT]
+                           [--system-prompt SYSTEM_PROMPT] [--enable-proxies]
 ```
 
 
@@ -70,6 +72,11 @@ Options:
   
   `--system-prompt SYSTEM_PROMPT`
                         Use a system prompt to 'customize' the answers
+  
+  `--enable-proxies`
+                         Use one or more proxies to avoid being blocked or banned
+
+
 
 
 If you want to use it with curl (credits to [@ayoubelmhamdi](https://github.com/ayoubelmhamdi)):

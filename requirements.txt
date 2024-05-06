@@ -1,4 +1,5 @@
 aiohttp
+aiohttp_socks
 auth
 Flask[async]
 g4f

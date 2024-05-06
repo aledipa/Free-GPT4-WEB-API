@@ -27,6 +27,7 @@ app.config['MAX_CONTENT_LENGTH'] = 16 * 1000 * 1000 # 16 MB
 
 # Settings file path
 SETTINGS_FILE = "./data/settings.json"
+PROXIES_FILE = "./data/proxies.json"
 
 # Available providers
 PROVIDERS = {
@@ -83,6 +84,12 @@ parser.add_argument(
     action='store_true',
     required=False,
     help="Use a private token to access the API",
+)
+parser.add_argument(
+    "--enable-proxies",
+    action='store_true',
+    required=False,
+    help="Use one or more proxies to avoid being blocked or banned",
 )
 parser.add_argument(
     "--enable-history",
@@ -352,12 +359,23 @@ async def index() -> str:
         message_history.append({"role": "system", "content": args.system_prompt})
         message_history.append({"role": "user", "content": question})
 
+    if (args.enable_proxies and os.path.exists(PROXIES_FILE)):
+        proxies = json.load(open(PROXIES_FILE))
+        # Extracts a proxy from the list
+        proxy = random.choice(proxies)
+        # Formats the proxy like https://user:password@host:port
+        proxy = f"{proxy['protocol']}://{proxy['username']}:{proxy['password']}@{proxy['ip']}:{proxy['port']}"
+        print("Proxy: " + proxy)
+    else:
+        proxy = None
+
     if (args.provider == "Auto"):
         response = (
             await g4f.ChatCompletion.create_async(
                 model=args.model,
                 messages=message_history,
                 cookies=cookies,
+                proxy=proxy
             )
         )
     else:
@@ -367,6 +385,7 @@ async def index() -> str:
                 provider=args.provider,
                 messages=message_history,
                 cookies=cookies,
+                proxy=proxy
             )
         )
 
