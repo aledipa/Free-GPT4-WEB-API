@@ -51,7 +51,7 @@ PROVIDERS = {
     "Wewordle": g4f.Provider.Wewordle,
     "You": g4f.Provider.You,
     "Yqcloud": g4f.Provider.Yqcloud,
-    "Gemini": g4f.Provider.Gemini,
+    "Bard": g4f.Provider.Bard
 }
 
 GENERIC_MODELS = ["gpt-3.5-turbo", "gpt-4"]
@@ -161,46 +161,40 @@ script_dir = os.path.dirname(script_path)
 # Change the current working directory
 os.chdir(script_dir)
 
+# Loads the proxies from the file
+if (args.enable_proxies and os.path.exists(PROXIES_FILE)):
+    proxies = json.load(open(PROXIES_FILE))
+else:
+    proxies = None
+
 # Loads the settings from the file
 with open(SETTINGS_FILE, "r") as f:
     data = json.load(f)
     f.close()
 # Updates the settings
 with open(SETTINGS_FILE, "w") as f:
-    if (args.keyword != None):
-        data["keyword"] = args.keyword
-    else:
+    if (args.keyword == None):
         args.keyword = data["keyword"]
 
     if (args.file_input == False):
         args.file_input = data["file_input"]
-    
+
     if (args.enable_history == False):
         args.enable_history = data["message_history"]
 
-    if (args.port != None):
-        data["port"] = args.port
-    else:
+    if (args.port == None):
         args.port = data["port"]
 
-    if (args.provider != None):
-        data["provider"] = args.provider
-    else:
+    if (args.provider == None):
         args.provider = data["provider"]
 
-    if (args.model != None):
-        data["model"] = args.model
-    else:
+    if (args.model == None):
         args.model = data["model"]
 
-    if (args.cookie_file != None):
-        data["cookie_file"] = args.cookie_file
-    else:
+    if (args.cookie_file == None):
         args.cookie_file = data["cookie_file"]
-    
-    if (args.system_prompt != None):
-        data["system_prompt"] = args.system_prompt
-    else:
+
+    if (args.system_prompt == None):
         args.system_prompt = data["system_prompt"]
 
     if (args.remove_sources == False):
@@ -211,6 +205,9 @@ with open(SETTINGS_FILE, "w") as f:
         data["token"] = token
     elif (data["token"] != ""):
         token = data["token"]
+
+    if (args.enable_proxies == False):
+        args.enable_proxies = data["proxies"]
 
     json.dump(data, f)
     f.close()
@@ -243,7 +240,7 @@ if (args.enable_gui):
                     with open(SETTINGS_FILE, "w") as f:
                         json.dump(data, f)
                         f.close()
-                        print("[V] Password saved.") 
+                        print("[V] Password saved.")
                 except Exception as error:
                     print("[X] Error:", error)
                     exit()
@@ -268,6 +265,7 @@ def saveSettings(request, file):
         data["provider"] = request.form["provider"]
         data["system_prompt"] = request.form["system_prompt"]
         data["message_history"] = bool(request.form["message_history"] == "true")
+        data["proxies"] = bool(request.form["proxies"] == "true")
         file = request.files["cookie_file"]
         if (args.private_mode or bool(request.form["private_mode"] == "true")):
             data["token"] = request.form["token"]
@@ -284,6 +282,35 @@ def saveSettings(request, file):
                 data["cookie_file"] = os.path.join(app.config['UPLOAD_FOLDER'], filename)
             else:
                 print("The file is not a json file")
+
+        if (args.enable_proxies or data["proxies"]):
+            # Extracts the proxies from the form
+            # print("Proxies enabled")
+            proxies = []
+            i = 1
+            while True:
+                if (("proxy_" + str(i)) in request.form):
+                    proxy = request.form["proxy_" + str(i)]
+                    if (proxy != ""):
+                        # Checks if the proxy syntax is correct
+                        if (proxy.count(":") == 3 and proxy.count("@") == 1):
+                            proxy = {
+                                "protocol": proxy.split("://")[0],
+                                "username": proxy.split("://")[1].split(":")[0],
+                                "password": proxy.split("://")[1].split(":")[1].split("@")[0],
+                                "ip": proxy.split("://")[1].split(":")[1].split("@")[1],
+                                "port": proxy.split("://")[1].split(":")[2]
+                            }
+                            proxies.append(proxy)
+                    i += 1
+                else:
+                    break
+
+            # Saves the proxies to the file proxies.json
+            with open(PROXIES_FILE, "w") as pf:
+                json.dump(proxies, pf)
+                pf.close()
+
 
         json.dump(data, f)
         f.close()
@@ -332,7 +359,7 @@ async def index() -> str:
     print("ici")
     if question is None:
         return "<p id='response'>Please enter a question</p>"
-    
+
     # Gets the response from the bot
     # print(PROVIDERS[args.provider].params)  # supported args
     print("\nCookies: " + str(len(args.cookie_file)))
@@ -349,7 +376,7 @@ async def index() -> str:
     else:
         cookies = {"a": "b"} # Dummy cookies
 
-    
+
     if (args.enable_history):
         print("History enabled")
         message_history.append({"role": "user", "content": question})
@@ -359,15 +386,13 @@ async def index() -> str:
         message_history.append({"role": "system", "content": args.system_prompt})
         message_history.append({"role": "user", "content": question})
 
-    if (args.enable_proxies and os.path.exists(PROXIES_FILE)):
-        proxies = json.load(open(PROXIES_FILE))
+    if (args.enable_proxies):
+        # proxies = json.load(open(PROXIES_FILE))
         # Extracts a proxy from the list
         proxy = random.choice(proxies)
         # Formats the proxy like https://user:password@host:port
         proxy = f"{proxy['protocol']}://{proxy['username']}:{proxy['password']}@{proxy['ip']}:{proxy['port']}"
         print("Proxy: " + proxy)
-    else:
-        proxy = None
 
     if (args.provider == "Auto"):
         response = (
@@ -436,6 +461,7 @@ async def settings():
             providers=PROVIDERS
             generic_models=GENERIC_MODELS
             data = json.loads(open(SETTINGS_FILE).read())
+            proxies = json.loads(open(PROXIES_FILE).read())
             return render_template("settings.html", **locals())
         except Exception as error:
             print("[X] Error:", error)
@@ -450,7 +476,7 @@ async def save():
             if (request.method == "POST"):
                 saveSettings(request, SETTINGS_FILE)
                 applySettings(SETTINGS_FILE)
-                
+
                 return "New settings saved and applied successfully!"
             else:
                 return render_template("login.html", **locals())
@@ -476,4 +502,4 @@ async def get_token():
 
 if __name__ == "__main__":
     # Starts the server, change the port if needed
-    app.run("0.0.0.0", port=args.port, debug=False)
+    app.run("0.0.0.0", port=args.port, debug=True)

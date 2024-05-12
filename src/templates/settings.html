@@ -107,6 +107,45 @@
                 </td>
             </tr>
             <tr>
+                <td class="py-1 fond-bold inter darkblue text-lg border-b border-slate-800" id="set_4">
+                    <b>Proxies:</b>
+                    <br>
+                    {% if data['proxies'] %}
+                    <div id="proxy_list" class="mt-3">
+                        {% else %}
+                    <div id="proxy_list" class="mt-3" hidden>
+                    {% endif %}
+                        <label for="add_proxy" id="add_proxy_button" class="button outline-none py-1 px-4 rounded-lg darkgreen_bg text-white text-md hover:opacity-95 w-24 mt-5" onclick="addProxy();">Add Proxy</label>
+                        <br>
+                        <p class="text-sm mb-2 mt-4"> <b> Your Proxies: </b></p>
+                        <div id="proxy_list_div">
+                            {% for proxy in proxies %}
+                                <!-- proxy form: protocol://user:password@ip:port -->
+                                <div class="flex justify-start mb-3" id="proxy_div_{{ loop.index }}">
+                                    <input type="text" id="proxy_{{ loop.index }}" name="proxy_{{ loop.index }}" class="input outline-none py-1 px-2 rounded-lg inter w-full" onchange="warnProxySyntax(this.value, this.id);" placeholder="protocol://user:password@host:port" value="{{ proxy['protocol'] }}://{{ proxy['username'] }}:{{ proxy['password'] }}@{{ proxy['ip'] }}:{{ proxy['port'] }}">
+                                    <img id="delete_icon_{{ loop.index }}" src="{{ url_for('static', filename='img/delete(Anggara).png') }}" width="32" class="inline-block mx-2 p-1 hover:brightness-125" alt="Delete" onclick="deleteElement('proxy_div_{{ loop.index }}');"/>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </td>
+                <td class="py-1 fond-bold inter darkblue text-lg align-top">
+                {% if data['proxies'] %}
+                    <input type="radio" id="off_rad_4" name="proxies" value="false" hidden oninput="turnOff('on_4', 'off_4', 'set_4'); hideElement('proxy_list');">
+                    <label for="off_rad_4" id="off_4" class="label_gray"><b>OFF</b></label>
+                    <p class="inline-block mx-1"> - </p>
+                    <input type="radio" id="on_rad_4" name="proxies" value="true" hidden oninput="turnOn('on_4', 'off_4', 'set_4'); showElement('proxy_list');" checked>
+                    <label for="on_rad_4" id="on_4" class="label_green"><b>ON</b></label>
+                {% else %}
+                    <input type="radio" id="off_rad_4" name="proxies" value="false" hidden oninput="turnOff('on_4', 'off_4', 'set_4'); hideElement('proxy_list');" checked>
+                    <label for="off_rad_4" id="off_4" class="label_red"><b>OFF</b></label>
+                    <p class="inline-block mx-1"> - </p>
+                    <input type="radio" id="on_rad_4" name="proxies" value="true" hidden oninput="turnOn('on_4', 'off_4', 'set_4'); showElement('proxy_list');">
+                    <label for="on_rad_4" id="on_4" class="label_gray"><b>ON</b></label>
+                {% endif %}
+                </td>
+            </tr>
+            <tr>
                 <td class="py-1 fond-bold inter darkblue text-lg border-b border-slate-800">
                     <b>Server port:</b>
                     <br>
@@ -175,7 +214,7 @@
                 <td class="py-1 fond-bold inter darkblue text-lg border-b border-slate-800">
                     <b>System Prompt:</b>
                     <b>
-                        <textarea type="text" id="system_prompt" name="system_prompt" class="input outline-none py-1 px-2 my-2 rounded-lg inter w-full" placeholder="i.e. You're a virtual flight assistant, from now on follow your role for every answer." value="{{ data['system_prompt'] }}"></textarea>
+                        <textarea type="text" id="system_prompt" name="system_prompt" class="input outline-none py-1 px-2 my-2 rounded-lg inter w-full font-normal" placeholder="i.e. You're a virtual flight assistant, from now on follow your role for every answer." value="{{ data['system_prompt'] }}"></textarea>
                     </b>
                 </td>
             </tr>
@@ -192,7 +231,7 @@
             <label id="save_label_dummy" class="button outline-none py-3 px-4 pl-5 rounded-lg bg-slate-300 inter text-white text-md mt-3 w-40">Save and apply</label>
         </div>
     </form>
-    
+
     {% endblock %}
 </body>
 <!-- script import -->

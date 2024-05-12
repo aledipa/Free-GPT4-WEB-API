@@ -1,11 +1,11 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap");
 /* font-family: 'Inter', sans-serif; */
 
 body {
-  margin: 0;
-  padding: 0;
-  font-family: 'Inter', sans-serif;
-  background-color: #E4F2F4;
+    margin: 0;
+    padding: 0;
+    font-family: "Inter", sans-serif;
+    background-color: #e4f2f4;
 }
 
 input::placeholder {
@@ -17,7 +17,7 @@ textarea::placeholder {
 }
 
 .inter {
-  font-family: 'Inter', sans-serif;
+    font-family: "Inter", sans-serif;
 }
 
 .darkblue {
@@ -29,7 +29,7 @@ textarea::placeholder {
 }
 
 .label_gray {
-    color: #C8D9DE;
+    color: #c8d9de;
 }
 
 .label_green {
@@ -37,7 +37,11 @@ textarea::placeholder {
 }
 
 .label_red {
-    color: #8B0000;
+    color: #8b0000;
+}
+
+.border_red {
+    border-color: #8b0000;
 }
 
 .label_darkorange {
@@ -55,6 +59,10 @@ textarea::placeholder {
 
 .blue_bg {
     background-color: #007080;
+}
+
+.lightpink_bg {
+    background-color: #fff2f2;
 }
 
 .fileholder {

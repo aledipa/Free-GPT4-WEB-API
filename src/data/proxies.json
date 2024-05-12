@@ -1,16 +1,16 @@
 [
-    {
-        "ip": "0.0.0.0",
-        "port": 8080,
-        "protocol": "socks5",
-        "username": "usr",
-        "password": "pass"
-    },
-    {
-        "ip": "0.0.0.1",
-        "port": 8080,
-        "protocol": "socks5",
-        "username": "usr",
-        "password": "pass"
-    }
+  {
+    "protocol": "socks5",
+    "username": "usr",
+    "password": "pass",
+    "ip": "0.0.0.0",
+    "port": "8080"
+  },
+  {
+    "protocol": "https",
+    "username": "usr",
+    "password": "pass",
+    "ip": "0.0.0.1",
+    "port": "443"
+  }
 ]
