@@ -502,4 +502,4 @@ async def get_token():
 
 if __name__ == "__main__":
     # Starts the server, change the port if needed
-    app.run("0.0.0.0", port=args.port, debug=True)
+    app.run("0.0.0.0", port=args.port, debug=False)

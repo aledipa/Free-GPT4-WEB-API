@@ -4,7 +4,7 @@
 [![Docker Image CI](https://github.com/aledipa/Free-GPT4-WEB-API/actions/workflows/docker-image.yml/badge.svg)](https://github.com/aledipa/Free-GPT4-WEB-API/actions/workflows/docker-image.yml)
 [![GPT4-API-PyApp](https://github.com/aledipa/Free-GPT4-WEB-API/actions/workflows/python-app.yml/badge.svg)](https://github.com/aledipa/Free-GPT4-WEB-API/actions/workflows/python-app.yml)
 
-<img src="https://status.freegpt4.ddns.net/getstatus" width="256" height="40" />
+<!-- <img src="https://status.freegpt4.ddns.net/getstatus" width="256" height="40" /> -->
 
 # Free-GPT4-WEB-API
 
@@ -12,8 +12,9 @@ FreeGPT4-WEB-API is a python server that allows you to have a self-hosted GPT-4 
 
 GUI Preview:
 
-<img src="./img/login.png" width="408" height="290" />
-<img src="./img/settings.png" width="408" height="290" />
+<!-- round angles images -->
+<img src="./img/login.png" width="408" height="290" style="border-radius: 0.4rem;" />
+<img src="./img/settings.png" width="408" height="290" style="border-radius: 0.4rem;" />
 
 ## Requirements
 
@@ -31,6 +32,8 @@ To install the required libraries, you can use the following command:
 `pip3 install -r requirements.txt`
 
 ### Usage
+
+_Note: It is recommended to use the GUI._
 
 To run the server, use the following command:
 
