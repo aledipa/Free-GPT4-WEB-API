@@ -10,6 +10,5 @@
   "keyword": "text",
   "cookie_file": "data/cookies.json",
   "system_prompt": "",
-  "enable_proxies": false,
   "proxies": false
 }

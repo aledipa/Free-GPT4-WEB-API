@@ -51,7 +51,8 @@ PROVIDERS = {
     "Wewordle": g4f.Provider.Wewordle,
     "You": g4f.Provider.You,
     "Yqcloud": g4f.Provider.Yqcloud,
-    "Bard": g4f.Provider.Bard
+    "Bard": g4f.Provider.Bard,
+    "DuckDuckGo": g4f.Provider.DuckDuckGo
 }
 
 GENERIC_MODELS = ["gpt-3.5-turbo", "gpt-4"]
@@ -388,7 +389,6 @@ async def index() -> str:
 
     proxy = None
     if (args.enable_proxies):
-        # proxies = json.load(open(PROXIES_FILE))
         # Extracts a proxy from the list
         proxy = random.choice(proxies)
         # Formats the proxy like https://user:password@host:port
