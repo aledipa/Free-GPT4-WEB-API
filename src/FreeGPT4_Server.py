@@ -386,6 +386,7 @@ async def index() -> str:
         message_history.append({"role": "system", "content": args.system_prompt})
         message_history.append({"role": "user", "content": question})
 
+    proxy = None
     if (args.enable_proxies):
         # proxies = json.load(open(PROXIES_FILE))
         # Extracts a proxy from the list
