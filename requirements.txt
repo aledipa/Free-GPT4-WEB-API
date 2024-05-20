@@ -3,6 +3,6 @@ aiohttp_socks
 auth
 Flask[async]
 g4f
-Werkzeug
+Werkzeug>=3.0.3
 aiohttp_socks
 nodriver
