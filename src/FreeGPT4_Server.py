@@ -102,7 +102,7 @@ parser.add_argument(
     "--password",
     action='store',
     required=False,
-    help="Optional, set a password for the settings page [mandatory in docker envirtonment]",
+    help="Set or change the password for the settings page [mandatory in docker envirtonment]",
 )
 parser.add_argument(
     "--cookie-file",
@@ -218,37 +218,39 @@ message_history = [{"role": "system", "content": args.system_prompt}]
 if (args.enable_gui):
     # Asks for password to set to lock the settings page
     # Checks if settings.json contains a password
-    if (data["password"] == ""):
-        try:
-            if (args.password != None):
-                password = args.password
-                confirm_password = password
-            else:
+    try:
+        if (args.password != None):
+            password = args.password
+            confirm_password = password
+        else:
+            if (data["password"] == ""):
                 password = getpass.getpass("Settings page password:\n > ")
                 confirm_password = getpass.getpass("Confirm password:\n > ")
-            if(password == "" or confirm_password == ""):
-                print("[X] Password cannot be empty")
-                exit()
-            if (password != confirm_password):
-                print("[X] Passwords don't match")
-                exit()
-            else:
-                password = generate_password_hash(password)
-                confirm_password = generate_password_hash(confirm_password)
-                print("[V] Password set.")
-                try:
-                    data["password"] = password
-                    with open(SETTINGS_FILE, "w") as f:
-                        json.dump(data, f)
-                        f.close()
-                        print("[V] Password saved.")
-                except Exception as error:
-                    print("[X] Error:", error)
-                    exit()
 
-        except Exception as error:
-            print("[X] Error:", error)
+        if((password == "" or confirm_password == "") and (data["password"] == "")):
+            print("[X] Password cannot be empty")
             exit()
+            
+        if ((password != confirm_password) and (data["password"] == "")):
+            print("[X] Passwords don't match")
+            exit()
+        else:
+            password = generate_password_hash(password)
+            confirm_password = generate_password_hash(confirm_password)
+            print("[V] Password set.")
+            try:
+                data["password"] = password
+                with open(SETTINGS_FILE, "w") as f:
+                    json.dump(data, f)
+                    f.close()
+                    print("[V] Password saved.")
+            except Exception as error:
+                print("[X] Error:", error)
+                exit()
+
+    except Exception as error:
+        print("[X] Error:", error)
+        exit()
 else:
     print("[!] GUI disabled")
 
@@ -286,7 +288,6 @@ def saveSettings(request, file):
 
         if (args.enable_proxies or data["proxies"]):
             # Extracts the proxies from the form
-            # print("Proxies enabled")
             proxies = []
             i = 1
             while True:
