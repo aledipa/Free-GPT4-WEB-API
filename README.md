@@ -10,11 +10,23 @@
 
 FreeGPT4-WEB-API is a python server that allows you to have a self-hosted GPT-4 Unlimited and Free WEB API, via the latest Bing's AI (and much more).
 
-GUI Preview:
+## Features
+- Self-hosted GPT-4 API
+- Unlimited usage
+- Free of cost
+- User-friendly GUI
+
+
+## GUI Preview:
 
 <!-- round angles images -->
 <img src="./img/login.png" width="408" height="290" style="border-radius: 0.4rem;" />
 <img src="./img/settings.png" width="408" height="290" style="border-radius: 0.4rem;" />
+
+## Installation
+1. Clone the repository: `git clone https://github.com/aledipa/Free-GPT4-WEB-API.git`
+2. Navigate to the project directory: `cd Free-GPT4-WEB-API`
+3. Install the required packages: `pip install -r requirements.txt`
 
 ## Requirements
 
@@ -26,17 +38,12 @@ GUI Preview:
 - auth
 - Werkzeug
 
-## Manual Installation
-To install the required libraries, you can use the following command:
-
-`pip3 install -r requirements.txt`
-
-### Usage
+## Usage
 
 _Note: It is recommended to [use the GUI](#to-use-the-web-gui)._
 
-#### To run the server, use the following command:
-
+### Run the server 
+Use the following command:
 ```shell
 python3 FreeGPT4_Server.py [-h] [--remove-sources] [--enable-gui] 
                            [--private-mode] [--enable-history] [--password PASSWORD] 
@@ -79,14 +86,14 @@ Options:
   `--enable-proxies`
                          Use one or more proxies to avoid being blocked or banned
 
-#### To make questions:
+### Make questions
 Once the server is up and running, make sure that you're able to reach its address and type `?text=` followed by your question next to it.
 You can replace ‘text’ with whatever you wish, either by using the `--keyword` flag or by changing the value of the ‘Input Keyword’ field on the Web GUI.
 
-#### To use the Web GUI:
+### Use the Web GUI
 Once you've enabled it by running the server with the `--enable-gui` flag, just type `/settings` or `/login` next to the server's url
 
-#### To use it with Curl 
+### Use it with Curl 
 (credits to [@ayoubelmhamdi](https://github.com/ayoubelmhamdi)):
 
 ```shell
