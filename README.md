@@ -8,7 +8,7 @@
 
 # Free-GPT4-WEB-API
 
-FreeGPT4-WEB-API is a python server that allows you to have a self-hosted GPT-4 Unlimited and Free WEB API, via the latest Bing's AI.
+FreeGPT4-WEB-API is a python server that allows you to have a self-hosted GPT-4 Unlimited and Free WEB API, via the latest Bing's AI (and much more).
 
 GUI Preview:
 
@@ -33,9 +33,9 @@ To install the required libraries, you can use the following command:
 
 ### Usage
 
-_Note: It is recommended to use the GUI._
+_Note: It is recommended to [use the GUI](#to-use-the-web-gui)._
 
-To run the server, use the following command:
+#### To run the server, use the following command:
 
 ```shell
 python3 FreeGPT4_Server.py [-h] [--remove-sources] [--enable-gui] 
@@ -58,7 +58,7 @@ Options:
   
   `--enable-history`      Enable the history of the messages
   
-  `--password PASSWORD`   Optional, set a password for the settings page [mandatory in docker envirtonment]
+  `--password PASSWORD`   Set or change the password for the settings page [mandatory in docker envirtonment]
   
   `--cookie-file COOKIE_FILE`
                         Use a cookie file
@@ -79,10 +79,15 @@ Options:
   `--enable-proxies`
                          Use one or more proxies to avoid being blocked or banned
 
+#### To make questions:
+Once the server is up and running, make sure that you're able to reach its address and type `?text=` followed by your question next to it.
+You can replace ‘text’ with whatever you wish, either by using the `--keyword` flag or by changing the value of the ‘Input Keyword’ field on the Web GUI.
 
+#### To use the Web GUI:
+Once you've enabled it by running the server with the `--enable-gui` flag, just type `/settings` or `/login` next to the server's url
 
-
-If you want to use it with curl (credits to [@ayoubelmhamdi](https://github.com/ayoubelmhamdi)):
+#### To use it with Curl 
+(credits to [@ayoubelmhamdi](https://github.com/ayoubelmhamdi)):
 
 ```shell
 fileTMP="$1"
@@ -132,10 +137,6 @@ Then you can use it just by saying "GPT Mode" to Siri and then ask your question
 ## Configuration
 
 The server can be configured by editing the `FreeGPT4_Server.py` file. You can change the server's port, host, and other settings. Please do _not_ edit the `settings.json` file manually, use the GUI or the corresponding parameters. The only cookie needed for the Bing model is _"_U"_.
-
-## Main Libraries
-
-FreeGPT4-WEB-API uses the Flask and GPT4Free libraries. Flask is a micro web framework for Python that allows you to easily create web applications. GPT4Free is a library that provides an interface to the Bing's GPT-4, credits to [@xtekky's GPT4Free](https://github.com/xtekky/gpt4free).
 
 ## Star History
 
