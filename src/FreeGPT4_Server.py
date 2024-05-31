@@ -4,6 +4,7 @@ import json
 import os
 import random
 import string
+import sqlite3
 from uuid import uuid4
 
 # GPT Library
@@ -26,7 +27,7 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1000 * 1000 # 16 MB
 
 # Settings file path
-SETTINGS_FILE = "./data/settings.json"
+SETTINGS_FILE = "./data/settings.db"
 PROXIES_FILE = "./data/proxies.json"
 
 # Available providers
@@ -168,57 +169,79 @@ if (args.enable_proxies and os.path.exists(PROXIES_FILE)):
 else:
     proxies = None
 
+
 # Loads the settings from the file
-with open(SETTINGS_FILE, "r") as f:
-    data = json.load(f)
-    f.close()
+def load_settings(file=SETTINGS_FILE):
+    conn = sqlite3.connect(file)
+    c = conn.cursor()
+    c.execute("SELECT * FROM settings")
+    data = c.fetchone()
+    conn.close()
+    # Converts the data to a dictionary
+    data = {
+        "keyword": data[1],
+        "file_input": data[2],
+        "port": data[3],
+        "provider": data[4],
+        "model": data[5],
+        "cookie_file": data[6],
+        "token": data[7],
+        "remove_sources": data[8],
+        "system_prompt": data[9],
+        "message_history": data[10],
+        "proxies": data[11],
+        "password": data[12]
+    }
+    print(data)
+    return data
+
 # Updates the settings
-with open(SETTINGS_FILE, "w") as f:
-    if (args.keyword == None):
-        args.keyword = data["keyword"]
+data = load_settings()
+if (args.keyword == None):
+    args.keyword = data["keyword"]
 
-    if (args.file_input == False):
-        args.file_input = data["file_input"]
+if (args.file_input == False):
+    args.file_input = data["file_input"]
 
-    if (args.enable_history == False):
-        args.enable_history = data["message_history"]
+if (args.port == None):
+    args.port = data["port"]
 
-    if (args.port == None):
-        args.port = data["port"]
+if (args.provider == None):
+    args.provider = data["provider"]
 
-    if (args.provider == None):
-        args.provider = data["provider"]
+if (args.model == None):
+    args.model = data["model"]
 
-    if (args.model == None):
-        args.model = data["model"]
+if (args.cookie_file == None):
+    args.cookie_file = data["cookie_file"]
 
-    if (args.cookie_file == None):
-        args.cookie_file = data["cookie_file"]
+if (args.private_mode and data["token"] == ""):
+    token = str(uuid4())
+    data["token"] = token
+elif (data["token"] != ""):
+    token = data["token"]
 
-    if (args.system_prompt == None):
-        args.system_prompt = data["system_prompt"]
+if (args.remove_sources == False):
+    args.remove_sources = data["remove_sources"]
 
-    if (args.remove_sources == False):
-        args.remove_sources = data["remove_sources"]
+if (args.system_prompt == None):
+    args.system_prompt = data["system_prompt"]
 
-    if (args.private_mode and data["token"] == ""):
-        token = str(uuid4())
-        data["token"] = token
-    elif (data["token"] != ""):
-        token = data["token"]
+if (args.enable_history == False):
+    args.enable_history = data["message_history"]
 
-    if (args.enable_proxies == False):
-        args.enable_proxies = data["proxies"]
+if (args.enable_proxies == False):
+    args.enable_proxies = data["proxies"]
 
-    json.dump(data, f)
-    f.close()
 
+# Initializes the message history
 message_history = [{"role": "system", "content": args.system_prompt}]
 
 if (args.enable_gui):
     # Asks for password to set to lock the settings page
-    # Checks if settings.json contains a password
+    # Checks if settings.db contains a password
     try:
+        set_password = True
         if (args.password != None):
             password = args.password
             confirm_password = password
@@ -226,28 +249,31 @@ if (args.enable_gui):
             if (data["password"] == ""):
                 password = getpass.getpass("Settings page password:\n > ")
                 confirm_password = getpass.getpass("Confirm password:\n > ")
+            else:
+                set_password = False
 
-        if((password == "" or confirm_password == "") and (data["password"] == "")):
-            print("[X] Password cannot be empty")
-            exit()
-            
-        if ((password != confirm_password) and (data["password"] == "")):
-            print("[X] Passwords don't match")
-            exit()
-        else:
-            password = generate_password_hash(password)
-            confirm_password = generate_password_hash(confirm_password)
-            print("[V] Password set.")
-            try:
-                data["password"] = password
-                with open(SETTINGS_FILE, "w") as f:
-                    json.dump(data, f)
-                    f.close()
-                    print("[V] Password saved.")
-            except Exception as error:
-                print("[X] Error:", error)
+        if (set_password):
+            if(password == "" or confirm_password == ""):
+                print("[X] Password cannot be empty")
                 exit()
 
+            if ((password != confirm_password) and (data["password"] == "")):
+                print("[X] Passwords don't match")
+                exit()
+            else:
+                password = generate_password_hash(password)
+                confirm_password = generate_password_hash(confirm_password)
+                print("[V] Password set.")
+                try:
+                    conn = sqlite3.connect(SETTINGS_FILE)
+                    c = conn.cursor()
+                    c.execute("UPDATE settings SET password = ?", (password,))
+                    conn.commit()
+                    conn.close()
+                    print("[V] Password saved.")
+                except Exception as error:
+                    print("[X] Error:", error)
+                    exit()
     except Exception as error:
         print("[X] Error:", error)
         exit()
@@ -255,84 +281,80 @@ else:
     print("[!] GUI disabled")
 
 # Saves the settings to the file
-def saveSettings(request, file):
-    with open(file, "r") as f:
-        data = json.load(f)
-        f.close()
-    with open(file, "w") as f:
-        data["file_input"] = bool(request.form["file_input"] == "true")
-        data["remove_sources"] = bool(request.form["remove_sources"] == "true")
-        data["port"] = request.form["port"]
-        data["model"] = request.form["model"]
-        data["keyword"] = request.form["keyword"]
-        data["provider"] = request.form["provider"]
-        data["system_prompt"] = request.form["system_prompt"]
-        data["message_history"] = bool(request.form["message_history"] == "true")
-        data["proxies"] = bool(request.form["proxies"] == "true")
-        file = request.files["cookie_file"]
-        if (args.private_mode or bool(request.form["private_mode"] == "true")):
-            data["token"] = request.form["token"]
+def save_settings(request, file):
+    conn = sqlite3.connect(file)
+    c = conn.cursor()
+    c.execute("UPDATE settings SET file_input = ?", (bool(request.form["file_input"] == "true"),))
+    c.execute("UPDATE settings SET remove_sources = ?", (bool(request.form["remove_sources"] == "true"),))
+    c.execute("UPDATE settings SET port = ?", (request.form["port"],))
+    c.execute("UPDATE settings SET model = ?", (request.form["model"],))
+    c.execute("UPDATE settings SET keyword = ?", (request.form["keyword"],))
+    c.execute("UPDATE settings SET provider = ?", (request.form["provider"],))
+    c.execute("UPDATE settings SET system_prompt = ?", (request.form["system_prompt"],))
+    c.execute("UPDATE settings SET message_history = ?", (bool(request.form["message_history"] == "true"),))
+    c.execute("UPDATE settings SET proxies = ?", (bool(request.form["proxies"] == "true"),))
+    file = request.files["cookie_file"]
+    if (args.private_mode or bool(request.form["private_mode"] == "true")):
+        c.execute("UPDATE settings SET token = ?", (request.form["token"],))
+    else:
+        c.execute("UPDATE settings SET token = ?", ("",))
+    #checks if the file is not empty
+    if file.filename != '':
+        #checks if the file is a json file
+        if file.filename.endswith('.json'):
+            #saves the file
+            filename = secure_filename(file.filename)
+            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+            #updates the cookie_file
+            c.execute("UPDATE settings SET cookie_file = ?", (os.path.join(app.config['UPLOAD_FOLDER'], filename),))
         else:
-            data["token"] = ""
-        #checks if the file is not empty
-        if file.filename != '':
-            #checks if the file is a json file
-            if file.filename.endswith('.json'):
-                #saves the file
-                filename = secure_filename(file.filename)
-                file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-                #updates the cookie_file
-                data["cookie_file"] = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            print("The file is not a json file")
+
+    if (args.enable_proxies or bool(request.form["proxies"] == "true")):
+        # Extracts the proxies from the form
+        proxies = []
+        i = 1
+        while True:
+            if (("proxy_" + str(i)) in request.form):
+                proxy = request.form["proxy_" + str(i)]
+                if (proxy != ""):
+                    # Checks if the proxy syntax is correct
+                    if (proxy.count(":") == 3 and proxy.count("@") == 1):
+                        proxy = {
+                            "protocol": proxy.split("://")[0],
+                            "username": proxy.split("://")[1].split(":")[0],
+                            "password": proxy.split("://")[1].split(":")[1].split("@")[0],
+                            "ip": proxy.split("://")[1].split(":")[1].split("@")[1],
+                            "port": proxy.split("://")[1].split(":")[2]
+                        }
+                        proxies.append(proxy)
+                i += 1
             else:
-                print("The file is not a json file")
+                break
 
-        if (args.enable_proxies or data["proxies"]):
-            # Extracts the proxies from the form
-            proxies = []
-            i = 1
-            while True:
-                if (("proxy_" + str(i)) in request.form):
-                    proxy = request.form["proxy_" + str(i)]
-                    if (proxy != ""):
-                        # Checks if the proxy syntax is correct
-                        if (proxy.count(":") == 3 and proxy.count("@") == 1):
-                            proxy = {
-                                "protocol": proxy.split("://")[0],
-                                "username": proxy.split("://")[1].split(":")[0],
-                                "password": proxy.split("://")[1].split(":")[1].split("@")[0],
-                                "ip": proxy.split("://")[1].split(":")[1].split("@")[1],
-                                "port": proxy.split("://")[1].split(":")[2]
-                            }
-                            proxies.append(proxy)
-                    i += 1
-                else:
-                    break
+        # Saves the proxies to the file proxies.json
+        with open(PROXIES_FILE, "w") as pf:
+            json.dump(proxies, pf)
+            pf.close()
 
-            # Saves the proxies to the file proxies.json
-            with open(PROXIES_FILE, "w") as pf:
-                json.dump(proxies, pf)
-                pf.close()
-
-
-        json.dump(data, f)
-        f.close()
+    conn.commit()
+    conn.close()
     return
 
 # Loads the settings from the file and updates the args
-def applySettings(file):
-    with open(file, "r") as f:
-        data = json.load(f)
-        args.keyword = data["keyword"]
-        args.file_input = data["file_input"]
-        args.port = data["port"]
-        args.provider = data["provider"]
-        args.model = data["model"]
-        args.cookie_file = data["cookie_file"]
-        args.token = data["token"]
-        args.remove_sources = data["remove_sources"]
-        args.system_prompt = data["system_prompt"]
-        args.enable_history = data["message_history"]
-        f.close()
+def apply_settings(file):
+    data = load_settings(file)
+    args.keyword = data["keyword"]
+    args.file_input = data["file_input"]
+    args.port = data["port"]
+    args.provider = data["provider"]
+    args.model = data["model"]
+    args.cookie_file = data["cookie_file"]
+    args.token = data["token"]
+    args.remove_sources = data["remove_sources"]
+    args.system_prompt = data["system_prompt"]
+    args.enable_history = data["message_history"]
+    args.enable_proxies = data["proxies"]
     return
 
 
@@ -435,6 +457,9 @@ async def index() -> str:
     # return "<p id='response'>" + resp + "</p>" # Uncomment if preferred
 
 def auth():
+    # Reads the password from the data file
+    data = load_settings()
+    # Checks if the password is set
     if (data["password"] != ""):
         if (request.method == "POST"):
             password = request.form["password"]
@@ -462,7 +487,7 @@ async def settings():
         try:
             providers=PROVIDERS
             generic_models=GENERIC_MODELS
-            data = json.loads(open(SETTINGS_FILE).read())
+            data = load_settings()
             proxies = json.loads(open(PROXIES_FILE).read())
             return render_template("settings.html", **locals())
         except Exception as error:
@@ -476,8 +501,8 @@ async def save():
     if (auth()):
         try:
             if (request.method == "POST"):
-                saveSettings(request, SETTINGS_FILE)
-                applySettings(SETTINGS_FILE)
+                save_settings(request, SETTINGS_FILE)
+                apply_settings(SETTINGS_FILE)
 
                 return "New settings saved and applied successfully!"
             else:
