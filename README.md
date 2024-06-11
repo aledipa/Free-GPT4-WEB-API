@@ -3,6 +3,7 @@
 
 [![Docker Image CI](https://github.com/aledipa/Free-GPT4-WEB-API/actions/workflows/docker-image.yml/badge.svg)](https://github.com/aledipa/Free-GPT4-WEB-API/actions/workflows/docker-image.yml)
 [![GPT4-API-PyApp](https://github.com/aledipa/Free-GPT4-WEB-API/actions/workflows/python-app.yml/badge.svg)](https://github.com/aledipa/Free-GPT4-WEB-API/actions/workflows/python-app.yml)
+![Docker Pulls](https://img.shields.io/docker/pulls/d0ckmg/free-gpt4-web-api)
 
 <!-- <img src="https://status.freegpt4.ddns.net/getstatus" width="256" height="40" /> -->
 
@@ -143,7 +144,7 @@ Then you can use it just by saying "GPT Mode" to Siri and then ask your question
 
 ## Configuration
 
-The server can be configured by editing the `FreeGPT4_Server.py` file. You can change the server's port, host, and other settings. Please do _not_ edit the `settings.json` file manually, use the GUI or the corresponding parameters. The only cookie needed for the Bing model is _"_U"_.
+The server can be configured by using the GUI or the corresponding parameters. The only cookie needed for the Bing model is _"_U"_.
 
 ## Star History
 
