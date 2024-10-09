@@ -33,14 +33,11 @@ PROXIES_FILE = "./data/proxies.json"
 # Available providers
 PROVIDERS = {
     "Auto": "",
-    "AItianhu": g4f.Provider.AItianhu,
     "Acytoo": g4f.Provider.Acytoo,
     "Aichat": g4f.Provider.Aichat,
     "Ails": g4f.Provider.Ails,
-    "Bard": g4f.Provider.Bard,
     "Bing": g4f.Provider.Bing,
-    "ChatgptAi": g4f.Provider.ChatgptAi,
-    "ChatgptLogin": g4f.Provider.ChatgptLogin,
+    "Chatgpt4o": g4f.Provider.Chatgpt4o,
     "H2o": g4f.Provider.H2o,
     "HuggingChat": g4f.Provider.HuggingChat,
     "Opchatgpts": g4f.Provider.Opchatgpts,
@@ -48,12 +45,12 @@ PROVIDERS = {
     "OpenaiChat": g4f.Provider.OpenaiChat,
     "Raycast": g4f.Provider.Raycast,
     "Theb": g4f.Provider.Theb,
-    "Vercel": g4f.Provider.Vercel,
     "Wewordle": g4f.Provider.Wewordle,
     "You": g4f.Provider.You,
     "Yqcloud": g4f.Provider.Yqcloud,
-    "Bard": g4f.Provider.Bard,
-    "DuckDuckGo": g4f.Provider.DuckDuckGo
+    "FreeChatgpt": g4f.Provider.FreeChatgpt,
+    "HuggingChat": g4f.Provider.HuggingChat,
+    "HuggingFace": g4f.Provider.HuggingFace
 }
 
 GENERIC_MODELS = ["gpt-3.5-turbo", "gpt-4", "gpt-4o"]
