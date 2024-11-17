@@ -21,8 +21,8 @@ FreeGPT4-WEB-API is a python server that allows you to have a self-hosted GPT-4 
 ## GUI Preview:
 
 <!-- round angles images -->
-<img src="./img/login.png" width="408" height="290" style="border-radius: 0.4rem;" />
-<img src="./img/settings.png" width="408" height="290" style="border-radius: 0.4rem;" />
+<img src="./img/login.png" style="width:100%; max-width:500px; min-width:200px; aspect-ratio: 4/3" />
+<img src="./img/settings.png" style="width:100%; max-width:500px; min-width:200px; aspect-ratio: 4/3" />
 
 ## Installation
 1. Clone the repository: `git clone https://github.com/aledipa/Free-GPT4-WEB-API.git`

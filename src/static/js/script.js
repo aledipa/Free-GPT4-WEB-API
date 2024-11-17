@@ -36,6 +36,16 @@ function hideElement(idToHide) {
   element.hidden = true;
 }
 
+// Hides a composed warning
+function hideWarning(idToHide) {
+  document.getElementById(idToHide).classList.add("hidden");
+}
+
+// Shows a composed warning
+function showWarning(idToShow) {
+  document.getElementById(idToShow).classList.remove("hidden");
+}
+
 // Copies the text in the given id to the clipboard
 function copyTextToClipboardFromName(name) {
   var copyText = document.getElementsByName(name)[0].value;

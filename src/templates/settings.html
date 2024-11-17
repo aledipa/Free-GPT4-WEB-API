@@ -93,7 +93,7 @@
                     {% if data['token']|length > 0 %}
                     <span id="warning_1" class="text-sm blue inline-block">
                     {% else %}
-                    <span id="warning_1" class="text-sm blue inline-block hidden" hidden>
+                    <span id="warning_1" class="text-sm blue inline-block hidden">
                     {% endif %}
                         <b>Your Token: </b> <i id="token_text" onclick="copyTextToClipboardFromName('token');">{{ data['token'] }}</i>
                         <img id="copy_icon" src="{{ url_for('static', filename='img/copy(Gregor_Cresnar).png') }}" width="16" class="inline-block" alt="Copy" onclick="copy('token', this.id, 'Copied!');"/>
@@ -101,16 +101,16 @@
                 </td>
                 <td class="py-1 fond-bold inter darkblue text-lg">
                 {% if data['token'] %}
-                <input type="radio" id="off_rad_3" name="private_mode" value="false" hidden oninput="turnOff('on_3', 'off_3', 'set_3'); hideElement('warning_1'); showElement('warning_0');">
+                <input type="radio" id="off_rad_3" name="private_mode" value="false" hidden oninput="turnOff('on_3', 'off_3', 'set_3'); hideWarning('warning_1'); showElement('warning_0');">
                     <label for="off_rad_3" id="off_3" class="label_gray"><b>OFF</b></label>
                     <p class="inline-block mx-1"> - </p>
-                    <input type="radio" id="on_rad_3" name="private_mode" value="true" hidden oninput="turnOn('on_3', 'off_3', 'set_3'); showElement('warning_1'); hideElement('warning_0'); createToken('token_text')" checked>
+                    <input type="radio" id="on_rad_3" name="private_mode" value="true" hidden oninput="turnOn('on_3', 'off_3', 'set_3'); showWarning('warning_1'); hideElement('warning_0'); createToken('token_text')" checked>
                     <label for="on_rad_3" id="on_3" class="label_green"><b>ON</b></label>
                 {% else %}
-                    <input type="radio" id="off_rad_3" name="private_mode" value="false" hidden oninput="turnOff('on_3', 'off_3', 'set_3'); hideElement('warning_1'); showElement('warning_0');" checked>
+                    <input type="radio" id="off_rad_3" name="private_mode" value="false" hidden oninput="turnOff('on_3', 'off_3', 'set_3'); hideWarning('warning_1'); showElement('warning_0');" checked>
                     <label for="off_rad_3" id="off_3" class="label_red"><b>OFF</b></label>
                     <p class="inline-block mx-1"> - </p>
-                    <input type="radio" id="on_rad_3" name="private_mode" value="true" hidden oninput="turnOn('on_3', 'off_3', 'set_3'); showElement('warning_1'); hideElement('warning_0'); createToken('token_text')">
+                    <input type="radio" id="on_rad_3" name="private_mode" value="true" hidden oninput="turnOn('on_3', 'off_3', 'set_3'); showWarning('warning_1'); hideElement('warning_0'); createToken('token_text')">
                     <label for="on_rad_3" id="on_3" class="label_gray"><b>ON</b></label>
                 {% endif %}
                 </td>

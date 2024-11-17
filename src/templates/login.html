@@ -14,10 +14,19 @@
 </head>
 <body>
     {% block content %}
-    <div class="m-7">
-        <h1 class="title font-bold inter darkblue text-4xl">Free GPT 4</h1>
-        <h2 class="title blue text-2xl">Login page</h2>
-    </div>
+    <!-- Logo on the left and title on the right -->
+    <table class="w-50 m-7">
+        <tr>
+            <td class="m-7">
+                <img src="{{ url_for('static', filename='img/favicon(Nicoladipa).png') }}" width="96" class="inline-block" alt="Logo">
+            </td>
+            <td class="m-7">
+                <h1 class="title font-bold inter darkblue text-4xl">FreeGPT4</h1>
+                <h2 class="title blue
+                text-2xl">Server settings</h2>
+            </td>
+        </tr>
+    </table>
 
     <div class="flex justify-center w-screen h-96">
         <div class="flex items-center">
