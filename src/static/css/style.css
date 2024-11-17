@@ -45,7 +45,6 @@ textarea::placeholder {
 }
 
 .label_darkorange {
-    /* color: #b59e1a; */
     color: #8b7b00;
 }
 
@@ -55,6 +54,10 @@ textarea::placeholder {
 
 .darkgreen_bg {
     background-color: #035306;
+}
+
+.darkred_bg {
+    background-color: #8b0000;
 }
 
 .blue_bg {

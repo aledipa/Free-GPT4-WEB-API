@@ -7,17 +7,26 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet" type="text/css">
     <link rel="shortcut icon" href="{{ url_for('static', filename='img/favicon(Nicoladipa).png') }}" type="image/x-icon">
     <title>Settings</title>
 </head>
 <body>
     {% block content %}
-    <div class="m-7">
-        <h1 class="title font-bold inter darkblue text-4xl">Free GPT 4</h1>
-        <h2 class="title blue text-2xl">Server settings</h2>
-    </div>
+    <!-- Logo on the left and title on the right -->
+    <table class="w-50 m-7">
+        <tr>
+            <td class="m-7">
+                <img src="{{ url_for('static', filename='img/favicon(Nicoladipa).png') }}" width="96" class="inline-block" alt="Logo">
+            </td>
+            <td class="m-7">
+                <h1 class="title font-bold inter darkblue text-4xl">FreeGPT4</h1>
+                <h2 class="title blue
+                text-2xl">Server settings</h2>
+            </td>
+        </tr>
+    </table>
+
 
     <form class="m-7 mt-10 inter" action="/save" method="post" enctype=multipart/form-data>
         <table class="table-fixed w-full">
@@ -115,7 +124,7 @@
                         {% else %}
                     <div id="proxy_list" class="mt-3" hidden>
                     {% endif %}
-                        <label for="add_proxy" id="add_proxy_button" class="button outline-none py-1 px-4 rounded-lg darkgreen_bg text-white text-md hover:opacity-95 w-24 mt-5" onclick="addProxy();">Add Proxy</label>
+                        <label id="add_proxy_button" class="button outline-none py-1 px-4 rounded-lg darkgreen_bg text-white text-md hover:opacity-95 w-24 mt-5" onclick="addProxy();">Add Proxy</label>
                         <br>
                         <p class="text-sm mb-2 mt-4"> <b> Your Proxies: </b></p>
                         <div id="proxy_list_div">
@@ -206,22 +215,42 @@
                 <td class="py-1 fond-bold inter darkblue text-lg border-b border-slate-800"><b>Input keyword:</b></td>
                 <td class="py-1 fond-bold inter darkblue text-lg">
                     <b>
-                        <input type="text" id="keyword" name="keyword" class="input outline-none py-1 px-2 rounded-lg inter w-24" placeholder="i.e. input" value="{{ data['keyword'] }}">
+                        <input type="text" id="keyword" name="keyword" class="input outline-none py-1 px-2 rounded-lg inter w-24" placeholder="i.e. input" value="{{ data['keyword'] }}" suggested="text"></input>
+                    </b>
+                </td>
+            </tr>
+            <tr>
+                <td class="py-1 fond-bold inter darkblue text-lg border-b border-slate-800 pb-3">
+                    <b>Password:</b>
+                    <div id="password_update" class="mt-4" hidden>
+                        <p class="text-sm"> <b> Set Password </b></p>
+                        <input type="password" id="new_password" name="new_password" class="input outline-none py-1 px-2 rounded-lg inter" placeholder="Your new Password" onchange="enableSaveButton();" autocomplete="new-password"></input>
+                        <p class="text-sm mt-4"> <b> Confirm Password </b></p>
+                        <input type="password" id="confirm_password" name="confirm_password" class="input outline-none py-1 px-2 rounded-lg inter" placeholder="New Password Again" onchange="enableSaveButton();" autocomplete="new-password"></input>
+                        <p id="error_password" class="text-sm label_red mt-1" hidden> <b> Error: </b> Passwords do not match </p>
+                        <p id="success_password" class="text-sm label_green mt-1" hidden> 
+                            <b> Success: </b> Passwords match. <br> 
+                            <i> When entering the old password below to confirm, the password will be updated </i>
+                        </p>
+                    </div>
+                </td>
+                <td class="py-1 fond-bold inter darkblue text-lg align-top">
+                    <b>
+                        <label id="open_password_update" class="button outline-none py-1 px-4 rounded-lg darkgreen_bg inter text-white text-md mt-5 hover:opacity-95 w-24" onclick="openPasswordUpdate(); enableSaveButton();">Update</label>
+                        <label id="cancel_password_update" class="button outline-none py-1 px-4 rounded-lg darkred_bg inter text-white text-md mt-5 hover:opacity-95 w-24" onclick="cancelPasswordUpdate(); enableSaveButton();" hidden>Cancel</label>
                     </b>
                 </td>
             </tr>
             <tr>
                 <td class="py-1 fond-bold inter darkblue text-lg border-b border-slate-800">
                     <b>System Prompt:</b>
-                    <b>
-                        <textarea type="text" id="system_prompt" name="system_prompt" class="input outline-none py-1 px-2 my-2 rounded-lg inter w-full font-normal" placeholder="i.e. You're a virtual flight assistant, from now on follow your role for every answer.">{{ data['system_prompt'] }}</textarea>
-                    </b>
+                    <textarea type="text" id="system_prompt" name="system_prompt" class="input outline-none py-1 px-2 my-2 rounded-lg inter w-full font-normal" placeholder="i.e. You're a virtual flight assistant, from now on follow your role for every answer.">{{ data['system_prompt'] }}</textarea>
                 </td>
             </tr>
         </table>
         <!-- enter password to confirm -->
         <div class="flex justify-start mt-12">
-            <input type="password" id="password" name="password" class="input outline-none py-3 px-4 rounded-lg inter w-60" placeholder="Enter password to confirm" onchange="replaceElement('save_label_dummy', 'save_label')">
+            <input type="password" id="password" name="password" class="input outline-none py-3 px-4 rounded-lg inter w-60" placeholder="Enter password to confirm" onchange="enableSaveButton();"  autocomplete="current-password">
         </div>
         <!-- save and apply button -->
         <div class="flex justify-start">

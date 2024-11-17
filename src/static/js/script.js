@@ -28,14 +28,12 @@ function replaceElement(idToHide, idToShow) {
 function showElement(idToShow) {
   element = document.getElementById(idToShow);
   element.hidden = false;
-  element.classList.remove("hidden");
 }
 
 // Hides an element
 function hideElement(idToHide) {
   element = document.getElementById(idToHide);
   element.hidden = true;
-  element.classList.add("hidden");
 }
 
 // Copies the text in the given id to the clipboard
@@ -169,6 +167,48 @@ function checkAllProxies() {
   var proxyList = proxyListDiv.getElementsByTagName("input");
   for (var i = 0; i < proxyList.length; i++) {
     warnProxySyntax(proxyList[i].value, proxyList[i].id);
+  }
+}
+
+// Checks if new password and confirm password match
+function checkPasswordMatch() {
+  var newPassword = document.getElementById("new_password").value;
+  var confirmPassword = document.getElementById("confirm_password").value;
+  if (newPassword == confirmPassword) {
+    if (newPassword.length > 0) {
+      replaceElement("error_password", "success_password");
+      return true;
+    }
+  } else {
+    replaceElement("success_password", "error_password");
+  }
+  return false;
+}
+
+// Opens the update password form
+function openPasswordUpdate() {
+  replaceElement("open_password_update", "cancel_password_update");
+  showElement("password_update");
+}
+
+// Closes the update password form
+function cancelPasswordUpdate() {
+  hideElement("password_update");
+  hideElement("success_password");
+  hideElement("error_password");
+  replaceElement("cancel_password_update", "open_password_update");
+  document.getElementById("new_password").value = "";
+  document.getElementById("confirm_password").value = "";
+}
+
+// Enables the save button if the password is correct
+function enableSaveButton() {
+  var pass_length = document.getElementById("password").value.length;
+  var isPasswordUpdateClosed = document.getElementById("password_update").hidden;
+  if ((checkPasswordMatch() || isPasswordUpdateClosed) && pass_length > 0) {
+    replaceElement('save_label_dummy', 'save_label');
+  } else {
+    replaceElement('save_label', 'save_label_dummy');
   }
 }
 

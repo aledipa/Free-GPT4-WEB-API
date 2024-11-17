@@ -48,12 +48,12 @@ PROVIDERS = {
     "Wewordle": g4f.Provider.Wewordle,
     "You": g4f.Provider.You,
     "Yqcloud": g4f.Provider.Yqcloud,
-    "FreeChatgpt": g4f.Provider.FreeChatgpt,
+    "Pizzagpt": g4f.Provider.Pizzagpt,
     "HuggingChat": g4f.Provider.HuggingChat,
     "HuggingFace": g4f.Provider.HuggingFace
 }
 
-GENERIC_MODELS = ["gpt-3.5-turbo", "gpt-4", "gpt-4o"]
+GENERIC_MODELS = ["gpt-3.5-turbo", "gpt-4", "gpt-4o", "gpt-4o-mini"]
 
 
 print(
@@ -290,6 +290,8 @@ def save_settings(request, file):
     c.execute("UPDATE settings SET system_prompt = ?", (request.form["system_prompt"],))
     c.execute("UPDATE settings SET message_history = ?", (bool(request.form["message_history"] == "true"),))
     c.execute("UPDATE settings SET proxies = ?", (bool(request.form["proxies"] == "true"),))
+    c.execute("UPDATE settings SET password = ?", (generate_password_hash(request.form["new_password"]),))
+
     file = request.files["cookie_file"]
     if (args.private_mode or bool(request.form["private_mode"] == "true")):
         c.execute("UPDATE settings SET token = ?", (request.form["token"],))
@@ -352,6 +354,7 @@ def apply_settings(file):
     args.system_prompt = data["system_prompt"]
     args.enable_history = data["message_history"]
     args.enable_proxies = data["proxies"]
+    args.password = data["password"]
     return
 
 
@@ -526,4 +529,4 @@ async def get_token():
 
 if __name__ == "__main__":
     # Starts the server, change the port if needed
-    app.run("0.0.0.0", port=args.port, debug=False)
+    app.run("0.0.0.0", port=args.port, debug=True)
