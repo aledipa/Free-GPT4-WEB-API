@@ -37,7 +37,12 @@ PROVIDERS = {
     "Aichat": g4f.Provider.Aichat,
     "Ails": g4f.Provider.Ails,
     "Bing": g4f.Provider.Bing,
+    "BlackBox": g4f.Provider.Blackbox,
     "Chatgpt4o": g4f.Provider.Chatgpt4o,
+    "ChatGpt": g4f.Provider.ChatGpt,
+    "ChatGptt" : g4f.Provider.ChatGptt,
+    "DeepInfraChat": g4f.Provider.DeepInfraChat,
+    "Glider": g4f.Provider.Glider,
     "H2o": g4f.Provider.H2o,
     "HuggingChat": g4f.Provider.HuggingChat,
     "Opchatgpts": g4f.Provider.Opchatgpts,
@@ -51,6 +56,7 @@ PROVIDERS = {
     "Pizzagpt": g4f.Provider.Pizzagpt,
     "HuggingChat": g4f.Provider.HuggingChat,
     "HuggingFace": g4f.Provider.HuggingFace
+    
 }
 
 GENERIC_MODELS = ["gpt-3.5-turbo", "gpt-4", "gpt-4o", "gpt-4o-mini"]
