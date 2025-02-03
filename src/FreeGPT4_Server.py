@@ -36,7 +36,6 @@ PROVIDERS = {
     "Acytoo": g4f.Provider.Acytoo,
     "Aichat": g4f.Provider.Aichat,
     "Ails": g4f.Provider.Ails,
-    "Bing": g4f.Provider.Bing,
     "BlackBox": g4f.Provider.Blackbox,
     "Chatgpt4o": g4f.Provider.Chatgpt4o,
     "ChatGpt": g4f.Provider.ChatGpt,
