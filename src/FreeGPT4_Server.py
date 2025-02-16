@@ -295,7 +295,8 @@ def save_settings(request, file):
     c.execute("UPDATE settings SET system_prompt = ?", (request.form["system_prompt"],))
     c.execute("UPDATE settings SET message_history = ?", (bool(request.form["message_history"] == "true"),))
     c.execute("UPDATE settings SET proxies = ?", (bool(request.form["proxies"] == "true"),))
-    c.execute("UPDATE settings SET password = ?", (generate_password_hash(request.form["new_password"]),))
+    if (len(request.form["new_password"]) > 0):
+        c.execute("UPDATE settings SET password = ?", (generate_password_hash(request.form["new_password"]),))
 
     file = request.files["cookie_file"]
     if (args.private_mode or bool(request.form["private_mode"] == "true")):
@@ -534,4 +535,4 @@ async def get_token():
 
 if __name__ == "__main__":
     # Starts the server, change the port if needed
-    app.run("0.0.0.0", port=args.port, debug=True)
+    app.run("0.0.0.0", port=args.port, debug=False)
