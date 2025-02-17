@@ -222,6 +222,7 @@ if (args.private_mode and data["token"] == ""):
     data["token"] = token
 elif (data["token"] != ""):
     token = data["token"]
+    args.private_mode = True
 
 if (args.remove_sources == False):
     args.remove_sources = data["remove_sources"]
@@ -299,10 +300,12 @@ def save_settings(request, file):
         c.execute("UPDATE settings SET password = ?", (generate_password_hash(request.form["new_password"]),))
 
     file = request.files["cookie_file"]
-    if (args.private_mode or bool(request.form["private_mode"] == "true")):
+    if (bool(request.form["private_mode"] == "true")):
         c.execute("UPDATE settings SET token = ?", (request.form["token"],))
+        args.private_mode = True
     else:
-        c.execute("UPDATE settings SET token = ?", ("",))
+        c.execute("UPDATE settings SET token = ''")
+        args.private_mode = False
     #checks if the file is not empty
     if file.filename != '':
         #checks if the file is a json file
@@ -377,6 +380,7 @@ async def index() -> str:
     print("start")
     if request.method == "GET":
         question = request.args.get(args.keyword) #text
+        print(args.private_mode)
         if (args.private_mode and request.args.get("token") != data["token"]):
             return "<p id='response'>Invalid token</p>"
         print("get")
