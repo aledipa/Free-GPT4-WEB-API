@@ -10,3 +10,4 @@ nodriver
 pysqlite3
 python-multipart
 uvicorn
+fastapi
