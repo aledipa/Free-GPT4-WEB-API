@@ -6,9 +6,11 @@ import random
 import string
 import sqlite3
 from uuid import uuid4
+import threading
 
 # GPT Library
 import g4f
+from g4f.api import run_api
 
 # Server
 from flask import Flask, redirect, render_template
@@ -155,6 +157,12 @@ parser.add_argument(
     type=str,
     help="Use a system prompt to 'customize' the answers",
 )
+parser.add_argument(
+    "--enable-fast-api",
+    action='store_true',
+    required=False,
+    help="Use the fast API standard (PORT 1337 - compatible with OpenAI integrations)",
+)
 
 args, unknown = parser.parse_known_args()
 
@@ -171,6 +179,8 @@ if (args.enable_proxies and os.path.exists(PROXIES_FILE)):
 else:
     proxies = None
 
+# Crates the Fast API Thread
+t = threading.Thread(target=run_api,name="fastapi")
 
 # Loads the settings from the file
 def load_settings(file=SETTINGS_FILE):
@@ -192,10 +202,16 @@ def load_settings(file=SETTINGS_FILE):
         "system_prompt": data[9],
         "message_history": data[10],
         "proxies": data[11],
-        "password": data[12]
+        "password": data[12],
+        "fast_api": data[13]
     }
     print(data)
     return data
+
+def start_fast_api():
+    print("[!] FAST API PORT: 1336")
+    t.daemon = True
+    t.start()
 
 # Updates the settings
 data = load_settings()
@@ -235,6 +251,9 @@ if (args.enable_history == False):
 
 if (args.enable_proxies == False):
     args.enable_proxies = data["proxies"]
+
+if (args.enable_fast_api or data["fast_api"]):
+    start_fast_api()
 
 
 # Initializes the message history
@@ -296,6 +315,7 @@ def save_settings(request, file):
     c.execute("UPDATE settings SET system_prompt = ?", (request.form["system_prompt"],))
     c.execute("UPDATE settings SET message_history = ?", (bool(request.form["message_history"] == "true"),))
     c.execute("UPDATE settings SET proxies = ?", (bool(request.form["proxies"] == "true"),))
+    c.execute("UPDATE settings SET fast_api = ?", (bool(request.form["fast_api"] == "true"),))
     if (len(request.form["new_password"]) > 0):
         c.execute("UPDATE settings SET password = ?", (generate_password_hash(request.form["new_password"]),))
 
@@ -345,6 +365,9 @@ def save_settings(request, file):
             json.dump(proxies, pf)
             pf.close()
 
+    if (bool(request.form["fast_api"] == "true") and not args.enable_fast_api):
+        start_fast_api()
+
     conn.commit()
     conn.close()
     return
@@ -364,6 +387,7 @@ def apply_settings(file):
     args.enable_history = data["message_history"]
     args.enable_proxies = data["proxies"]
     args.password = data["password"]
+    args.enable_fast_api = data["fast_api"]
     return
 
 

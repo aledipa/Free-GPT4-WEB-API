@@ -155,14 +155,36 @@
                 </td>
             </tr>
             <tr>
+                <td class="py-1 fond-bold inter darkblue text-lg border-b border-slate-800" id="set_5">
+                    <b>Fast API:</b>
+                    <br>
+                    <p id="warning_2" class="text-sm label_darkorange" hidden> <b>Warning:</b> the Fast API shutdown will take effect only after you've manually restarted the server </p>
+                </td>
+                <td class="py-1 fond-bold inter darkblue text-lg">
+                {% if data['fast_api'] %}
+                <input type="radio" id="off_rad_5" name="fast_api" value="false" hidden oninput="turnOff('on_5', 'off_5', 'set_5'); showElement('warning_2');">
+                    <label for="off_rad_5" id="off_5" class="label_gray"><b>OFF</b></label>
+                    <p class="inline-block mx-1"> - </p>
+                    <input type="radio" id="on_rad_5" name="fast_api" value="true" hidden oninput="turnOn('on_5', 'off_5', 'set_5'); hideElement('warning_2');" checked>
+                    <label for="on_rad_5" id="on_5" class="label_green"><b>ON</b></label>
+                {% else %}
+                    <input type="radio" id="off_rad_5" name="fast_api" value="false" hidden oninput="turnOff('on_5', 'off_5', 'set_5'); showElement('warning_2');" checked>
+                    <label for="off_rad_5" id="off_5" class="label_red"><b>OFF</b></label>
+                    <p class="inline-block mx-1"> - </p>
+                    <input type="radio" id="on_rad_5" name="fast_api" value="true" hidden oninput="turnOn('on_5', 'off_5', 'set_5'); hideElement('warning_2');">
+                    <label for="on_rad_5" id="on_5" class="label_gray"><b>ON</b></label>
+                {% endif %}
+                </td>
+            </tr>
+            <tr>
                 <td class="py-1 fond-bold inter darkblue text-lg border-b border-slate-800">
                     <b>Server port:</b>
                     <br>
-                    <p id="warning_2" class="text-sm label_darkorange" hidden> <b>Warning:</b> the port change will take effect only after you've manually restarted the server </p>
+                    <p id="warning_3" class="text-sm label_darkorange" hidden> <b>Warning:</b> the port change will take effect only after you've manually restarted the server </p>
                 </td>
                 <td class="py-1 fond-bold inter darkblue text-lg">
                     <b>
-                        <input type="number" id="port" name="port" class="input outline-none py-1 px-2 rounded-lg inter w-24" placeholder="Port" value="{{ data['port'] }}" onchange="showElement('warning_2')">
+                        <input type="number" id="port" name="port" class="input outline-none py-1 px-2 rounded-lg inter w-24" placeholder="Port" value="{{ data['port'] }}" onchange="showElement('warning_3')">
                     </b>
                 </td>
             </tr>
