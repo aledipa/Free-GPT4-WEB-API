@@ -34,30 +34,25 @@ PROXIES_FILE = "./data/proxies.json"
 
 # Available providers
 PROVIDERS = {
-    "Auto": "",
-    "Acytoo": g4f.Provider.Acytoo,
-    "Aichat": g4f.Provider.Aichat,
-    "Ails": g4f.Provider.Ails,
-    "BlackBox": g4f.Provider.Blackbox,
-    "Chatgpt4o": g4f.Provider.Chatgpt4o,
-    "ChatGpt": g4f.Provider.ChatGpt,
-    "ChatGptt" : g4f.Provider.ChatGptt,
+    "ARTA": g4f.Provider.ARTA,
+    "Blackbox": g4f.Provider.Blackbox,
+    "Chatai": g4f.Provider.Chatai,
+    "Cloudflare": g4f.Provider.Cloudflare,
+    "Copilot": g4f.Provider.Copilot,
     "DeepInfraChat": g4f.Provider.DeepInfraChat,
-    "Glider": g4f.Provider.Glider,
-    "H2o": g4f.Provider.H2o,
-    "HuggingChat": g4f.Provider.HuggingChat,
-    "Opchatgpts": g4f.Provider.Opchatgpts,
-    "OpenAssistant": g4f.Provider.OpenAssistant,
-    "OpenaiChat": g4f.Provider.OpenaiChat,
-    "Raycast": g4f.Provider.Raycast,
-    "Theb": g4f.Provider.Theb,
-    "Wewordle": g4f.Provider.Wewordle,
-    "You": g4f.Provider.You,
+    "DuckDuckGo": g4f.Provider.DuckDuckGo,
+    "Free2GPT": g4f.Provider.Free2GPT,
+    "LambdaChat": g4f.Provider.LambdaChat,
+    "LegacyLMArena": g4f.Provider.LegacyLMArena,
+    "OIVSCodeSer0501": g4f.Provider.OIVSCodeSer0501,
+    "OpenAIFM": g4f.Provider.OpenAIFM,
+    "PerplexityLabs": g4f.Provider.PerplexityLabs,
+    "PollinationsAI": g4f.Provider.PollinationsAI,
+    "PollinationsImage": g4f.Provider.PollinationsImage,
+    "TeachAnything": g4f.Provider.TeachAnything,
+    "Together": g4f.Provider.Together,
+    "WeWordle": g4f.Provider.WeWordle,
     "Yqcloud": g4f.Provider.Yqcloud,
-    "Pizzagpt": g4f.Provider.Pizzagpt,
-    "HuggingChat": g4f.Provider.HuggingChat,
-    "HuggingFace": g4f.Provider.HuggingFace
-    
 }
 
 GENERIC_MODELS = ["gpt-3.5-turbo", "gpt-4", "gpt-4o", "gpt-4o-mini"]
