@@ -16,6 +16,14 @@ textarea::placeholder {
     font-style: italic;
 }
 
+input:read-only {
+    background-color: transparent;
+}
+
+input:read-write {
+    background-color: white;
+}
+
 .inter {
     font-family: "Inter", sans-serif;
 }

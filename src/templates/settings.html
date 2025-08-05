@@ -22,65 +22,40 @@
             <td class="m-7">
                 <h1 class="title font-bold inter darkblue text-4xl">FreeGPT4</h1>
                 <h2 class="title blue
-                text-2xl">Server settings</h2>
+                text-2xl">Settings</h2>
             </td>
         </tr>
     </table>
 
 
+    {% if username == "admin" %}
     <form class="m-7 mt-10 inter" action="/save" method="post" enctype=multipart/form-data>
+    {% else %}
+    <form class="m-7 mt-10 inter" action="/save/{{ username }}" method="post" enctype=multipart/form-data>
+    {% endif %}
+        <!-- username hidden input -->
+        <input type="hidden" id="username" name="username" value="{{ username }}">
+        {% if username != "admin" %}
+        <h1 class="title blue text-xl">Welcome, {{ username }}!</h1>
+        {% endif %}
         <table class="table-fixed w-full">
+        {% if username == "admin" %}
+            <h3 class="title blue text-xl">Server</h3>
             <tr>
                 <td class="py-1 fond-bold inter darkblue text-lg border-b border-slate-800" id="set_0"><b>File input support:</b></td>
                 <td class="py-1 fond-bold inter darkblue text-lg">
                 {% if data['file_input'] %}
-                    <input type="radio" id="off_rad_0" name="file_input" value="false" hidden oninput="turnOff('on_0', 'off_0', 'set_0')">
+                    <input type="radio" id="off_rad_0" name="file_input" value="false" class="hidden" oninput="turnOff('on_0', 'off_0', 'set_0')">
                     <label for="off_rad_0" id="off_0" class="label_gray"><b>OFF</b></label>
                     <p class="inline-block mx-1"> - </p>
-                    <input type="radio" id="on_rad_0" id="file_input" name="file_input" value="true" hidden oninput="turnOn('on_0', 'off_0', 'set_0')" checked>
+                    <input type="radio" id="on_rad_0" id="file_input" name="file_input" value="true" class="hidden" oninput="turnOn('on_0', 'off_0', 'set_0')" checked>
                     <label for="on_rad_0" id="on_0" class="label_green"><b>ON</b></label>
                 {% else %}
-                    <input type="radio" id="off_rad_0" name="file_input" value="false" hidden oninput="turnOff('on_0', 'off_0', 'set_0')" checked>
+                    <input type="radio" id="off_rad_0" name="file_input" value="false" class="hidden" oninput="turnOff('on_0', 'off_0', 'set_0')" checked>
                     <label for="off_rad_0" id="off_0" class="label_red"><b>OFF</b></label>
                     <p class="inline-block mx-1"> - </p>
-                    <input type="radio" id="on_rad_0" id="file_input" name="file_input" value="true" hidden oninput="turnOn('on_0', 'off_0', 'set_0')">
+                    <input type="radio" id="on_rad_0" id="file_input" name="file_input" value="true" class="hidden" oninput="turnOn('on_0', 'off_0', 'set_0')">
                     <label for="on_rad_0" id="on_0" class="label_gray"><b>ON</b></label>
-                {% endif %}
-                </td>
-            </tr>
-            <tr>
-                <td class="py-1 fond-bold inter darkblue text-lg border-b border-slate-800" id="set_1"><b>Show sources:</b></td>
-                <td class="py-1 fond-bold inter darkblue text-lg">
-                {% if data['remove_sources'] %}
-                <input type="radio" id="off_rad_1" name="remove_sources" value="true" hidden oninput="turnOff('on_1', 'off_1', 'set_1')" checked>
-                    <label for="off_rad_1" id="off_1" class="label_red"><b>OFF</b></label>
-                    <p class="inline-block mx-1"> - </p>
-                    <input type="radio" id="on_rad_1" name="remove_sources" value="false" hidden oninput="turnOn('on_1', 'off_1', 'set_1')">
-                    <label for="on_rad_1" id="on_1" class="label_gray"><b>ON</b></label>
-                {% else %}
-                    <input type="radio" id="off_rad_1" name="remove_sources" value="true" hidden oninput="turnOff('on_1', 'off_1', 'set_1')">
-                    <label for="off_rad_1" id="off_1" class="label_gray"><b>OFF</b></label>
-                    <p class="inline-block mx-1"> - </p>
-                    <input type="radio" id="on_rad_1" name="remove_sources" value="false" hidden oninput="turnOn('on_1', 'off_1', 'set_1')" checked>
-                    <label for="on_rad_1" id="on_1" class="label_green"><b>ON</b></label>
-                {% endif %}
-                </td>
-            </tr>
-            <tr>
-                <td class="py-1 fond-bold inter darkblue text-lg border-b border-slate-800" id="set_2"><b>Message history:</b></td>
-                <td class="py-1 fond-bold inter darkblue text-lg">
-                {% if data['message_history'] %}
-                <input type="radio" id="off_rad_2" name="message_history" value="false" hidden oninput="turnOff('on_2', 'off_2', 'set_2')">
-                    <label for="off_rad_2" id="off_2" class="label_gray"><b>OFF</b></label>
-                    <p class="inline-block mx-1"> - </p>
-                    <input type="radio" id="on_rad_2" name="message_history" value="true" hidden oninput="turnOn('on_2', 'off_2', 'set_2')" checked>
-                    <label for="on_rad_2" id="on_2" class="label_green"><b>ON</b></label>
-                {% else %}
-                    <input type="radio" id="off_rad_2" name="message_history" value="false" hidden oninput="turnOff('on_2', 'off_2', 'set_2')" checked>
-                    <label for="off_rad_2" id="off_2" class="label_red"><b>OFF</b></label>
-                    <p class="inline-block mx-1"> - </p>
-                    <input type="radio" id="on_rad_2" name="message_history" value="true" hidden oninput="turnOn('on_2', 'off_2', 'set_2')">
-                    <label for="on_rad_2" id="on_2" class="label_gray"><b>ON</b></label>
                 {% endif %}
                 </td>
             </tr>
@@ -88,8 +63,8 @@
                 <td class="py-1 fond-bold inter darkblue text-lg border-b border-slate-800" id="set_3">
                     <b>Private Mode:</b>
                     <br>
-                    <p id="warning_0" class="text-sm label_darkorange" hidden> <b>Warning:</b> your current token will be deleted </p>
-                    <input name="token" id="token" value="{{ data['token'] }}" hidden/>
+                    <p id="warning_0" class="text-sm label_darkorange hidden"> <b>Warning:</b> your current token will be deleted </p>
+                    <input name="token" id="token" value="{{ data['token'] }}" class="hidden"/>
                     {% if data['token']|length > 0 %}
                     <span id="warning_1" class="text-sm blue inline-block">
                     {% else %}
@@ -101,16 +76,16 @@
                 </td>
                 <td class="py-1 fond-bold inter darkblue text-lg">
                 {% if data['token'] %}
-                <input type="radio" id="off_rad_3" name="private_mode" value="false" hidden oninput="turnOff('on_3', 'off_3', 'set_3'); hideWarning('warning_1'); showElement('warning_0');">
+                <input type="radio" id="off_rad_3" name="private_mode" value="false" class="hidden" oninput="turnOff('on_3', 'off_3', 'set_3'); hideWarning('warning_1'); showElement('warning_0');">
                     <label for="off_rad_3" id="off_3" class="label_gray"><b>OFF</b></label>
                     <p class="inline-block mx-1"> - </p>
-                    <input type="radio" id="on_rad_3" name="private_mode" value="true" hidden oninput="turnOn('on_3', 'off_3', 'set_3'); showWarning('warning_1'); hideElement('warning_0'); createToken('token_text')" checked>
+                    <input type="radio" id="on_rad_3" name="private_mode" value="true" class="hidden" oninput="turnOn('on_3', 'off_3', 'set_3'); showWarning('warning_1'); hideElement('warning_0'); createToken('token_text')" checked>
                     <label for="on_rad_3" id="on_3" class="label_green"><b>ON</b></label>
                 {% else %}
-                    <input type="radio" id="off_rad_3" name="private_mode" value="false" hidden oninput="turnOff('on_3', 'off_3', 'set_3'); hideWarning('warning_1'); showElement('warning_0');" checked>
+                    <input type="radio" id="off_rad_3" name="private_mode" value="false" class="hidden" oninput="turnOff('on_3', 'off_3', 'set_3'); hideWarning('warning_1'); showElement('warning_0');" checked>
                     <label for="off_rad_3" id="off_3" class="label_red"><b>OFF</b></label>
                     <p class="inline-block mx-1"> - </p>
-                    <input type="radio" id="on_rad_3" name="private_mode" value="true" hidden oninput="turnOn('on_3', 'off_3', 'set_3'); showWarning('warning_1'); hideElement('warning_0'); createToken('token_text')">
+                    <input type="radio" id="on_rad_3" name="private_mode" value="true" class="hidden" oninput="turnOn('on_3', 'off_3', 'set_3'); showWarning('warning_1'); hideElement('warning_0'); createToken('token_text')">
                     <label for="on_rad_3" id="on_3" class="label_gray"><b>ON</b></label>
                 {% endif %}
                 </td>
@@ -122,7 +97,7 @@
                     {% if data['proxies'] %}
                     <div id="proxy_list" class="mt-3">
                         {% else %}
-                    <div id="proxy_list" class="mt-3" hidden>
+                    <div id="proxy_list" class="mt-3 hidden">
                     {% endif %}
                         <label id="add_proxy_button" class="button outline-none py-1 px-4 rounded-lg darkgreen_bg text-white text-md hover:opacity-95 w-24 mt-5" onclick="addProxy();">Add Proxy</label>
                         <br>
@@ -131,7 +106,7 @@
                             {% for proxy in proxies %}
                                 <!-- proxy form: protocol://user:password@ip:port -->
                                 <div class="flex justify-start mb-3" id="proxy_div_{{ loop.index }}">
-                                    <input type="text" id="proxy_{{ loop.index }}" name="proxy_{{ loop.index }}" class="input outline-none py-1 px-2 rounded-lg inter w-full" onchange="warnProxySyntax(this.value, this.id);" placeholder="protocol://user:password@host:port" value="{{ proxy['protocol'] }}://{{ proxy['username'] }}:{{ proxy['password'] }}@{{ proxy['ip'] }}:{{ proxy['port'] }}">
+                                    <input type="text" id="proxy_{{ loop.index }}" name="proxy_{{ loop.index }}" class="input outline-none py-1 px-2 rounded-lg inter w-full" onchange="warnProxySyntax(this.value, this.id);" placeholder="protocol://user:password@host:port" value="{{ proxy['protocol'] }}://{{ proxy['username_{{loop.index}}ame'] }}:{{ proxy['password'] }}@{{ proxy['ip'] }}:{{ proxy['port'] }}">
                                     <img id="delete_icon_{{ loop.index }}" src="{{ url_for('static', filename='img/delete(Anggara).png') }}" width="32" class="inline-block mx-2 p-1 hover:brightness-125" alt="Delete" onclick="deleteElement('proxy_div_{{ loop.index }}');"/>
                                 </div>
                             {% endfor %}
@@ -140,16 +115,16 @@
                 </td>
                 <td class="py-1 fond-bold inter darkblue text-lg align-top">
                 {% if data['proxies'] %}
-                    <input type="radio" id="off_rad_4" name="proxies" value="false" hidden oninput="turnOff('on_4', 'off_4', 'set_4'); hideElement('proxy_list');">
+                    <input type="radio" id="off_rad_4" name="proxies" value="false" class="hidden" oninput="turnOff('on_4', 'off_4', 'set_4'); hideElement('proxy_list');">
                     <label for="off_rad_4" id="off_4" class="label_gray"><b>OFF</b></label>
                     <p class="inline-block mx-1"> - </p>
-                    <input type="radio" id="on_rad_4" name="proxies" value="true" hidden oninput="turnOn('on_4', 'off_4', 'set_4'); showElement('proxy_list');" checked>
+                    <input type="radio" id="on_rad_4" name="proxies" value="true" class="hidden" oninput="turnOn('on_4', 'off_4', 'set_4'); showElement('proxy_list');" checked>
                     <label for="on_rad_4" id="on_4" class="label_green"><b>ON</b></label>
                 {% else %}
-                    <input type="radio" id="off_rad_4" name="proxies" value="false" hidden oninput="turnOff('on_4', 'off_4', 'set_4'); hideElement('proxy_list');" checked>
+                    <input type="radio" id="off_rad_4" name="proxies" value="false" class="hidden" oninput="turnOff('on_4', 'off_4', 'set_4'); hideElement('proxy_list');" checked>
                     <label for="off_rad_4" id="off_4" class="label_red"><b>OFF</b></label>
                     <p class="inline-block mx-1"> - </p>
-                    <input type="radio" id="on_rad_4" name="proxies" value="true" hidden oninput="turnOn('on_4', 'off_4', 'set_4'); showElement('proxy_list');">
+                    <input type="radio" id="on_rad_4" name="proxies" value="true" class="hidden" oninput="turnOn('on_4', 'off_4', 'set_4'); showElement('proxy_list');">
                     <label for="on_rad_4" id="on_4" class="label_gray"><b>ON</b></label>
                 {% endif %}
                 </td>
@@ -158,20 +133,20 @@
                 <td class="py-1 fond-bold inter darkblue text-lg border-b border-slate-800" id="set_5">
                     <b>Fast API:</b>
                     <br>
-                    <p id="warning_2" class="text-sm label_darkorange" hidden> <b>Warning:</b> the Fast API shutdown will take effect only after you've manually restarted the server </p>
+                    <p id="warning_2" class="text-sm label_darkorange hidden"> <b>Warning:</b> the Fast API shutdown will take effect only after you've manually restarted the server </p>
                 </td>
                 <td class="py-1 fond-bold inter darkblue text-lg">
                 {% if data['fast_api'] %}
-                <input type="radio" id="off_rad_5" name="fast_api" value="false" hidden oninput="turnOff('on_5', 'off_5', 'set_5'); showElement('warning_2');">
+                <input type="radio" id="off_rad_5" name="fast_api" value="false" class="hidden" oninput="turnOff('on_5', 'off_5', 'set_5'); showElement('warning_2');">
                     <label for="off_rad_5" id="off_5" class="label_gray"><b>OFF</b></label>
                     <p class="inline-block mx-1"> - </p>
-                    <input type="radio" id="on_rad_5" name="fast_api" value="true" hidden oninput="turnOn('on_5', 'off_5', 'set_5'); hideElement('warning_2');" checked>
+                    <input type="radio" id="on_rad_5" name="fast_api" value="true" class="hidden" oninput="turnOn('on_5', 'off_5', 'set_5'); hideElement('warning_2');" checked>
                     <label for="on_rad_5" id="on_5" class="label_green"><b>ON</b></label>
                 {% else %}
-                    <input type="radio" id="off_rad_5" name="fast_api" value="false" hidden oninput="turnOff('on_5', 'off_5', 'set_5'); showElement('warning_2');" checked>
+                    <input type="radio" id="off_rad_5" name="fast_api" value="false" class="hidden" oninput="turnOff('on_5', 'off_5', 'set_5'); showElement('warning_2');" checked>
                     <label for="off_rad_5" id="off_5" class="label_red"><b>OFF</b></label>
                     <p class="inline-block mx-1"> - </p>
-                    <input type="radio" id="on_rad_5" name="fast_api" value="true" hidden oninput="turnOn('on_5', 'off_5', 'set_5'); hideElement('warning_2');">
+                    <input type="radio" id="on_rad_5" name="fast_api" value="true" class="hidden" oninput="turnOn('on_5', 'off_5', 'set_5'); hideElement('warning_2');">
                     <label for="on_rad_5" id="on_5" class="label_gray"><b>ON</b></label>
                 {% endif %}
                 </td>
@@ -180,13 +155,78 @@
                 <td class="py-1 fond-bold inter darkblue text-lg border-b border-slate-800">
                     <b>Server port:</b>
                     <br>
-                    <p id="warning_3" class="text-sm label_darkorange" hidden> <b>Warning:</b> the port change will take effect only after you've manually restarted the server </p>
+                    <p id="warning_3" class="text-sm label_darkorange hidden"> <b>Warning:</b> the port change will take effect only after you've manually restarted the server </p>
                 </td>
                 <td class="py-1 fond-bold inter darkblue text-lg">
                     <b>
                         <input type="number" id="port" name="port" class="input outline-none py-1 px-2 rounded-lg inter w-24" placeholder="Port" value="{{ data['port'] }}" onchange="showElement('warning_3')">
                     </b>
                 </td>
+            </tr>
+            <tr>
+                <td class="py-1 fond-bold inter darkblue text-lg border-b border-slate-800"><b>Cookies:</b></td>
+                <td class="py-1 fond-bold inter darkblue text-lg">
+                    <b>
+                        <input type="file" id="cookie_file" name="cookie_file" class="input outline-none py-1 px-2 rounded-lg inter w-24 fileholder" placeholder="Cookies" value="{{ data['cookie_file'] }}" accept=".json" oninput="changeButton('cookies_button')" hidden>
+                        <label for="cookie_file" id="cookies_button" class="text-white darkblue_bg outline-none focus:outline-none inter rounded-lg text-md px-4 py-1 text-center inline-flex items-center me-2 hover:opacity-95">
+                            <img src="{{ url_for('static', filename='img/upload(IlhamFitrotulHayat).png') }}" class="w-4 h-4 me-2"/>
+                            Upload
+                        </label>
+                    </b>
+                </td>
+            </tr>
+            <tr>
+                <td class="py-1 fond-bold inter darkblue text-lg border-b border-slate-800"><b>Input keyword:</b></td>
+                <td class="py-1 fond-bold inter darkblue text-lg">
+                    <b>
+                        <input type="text" id="keyword" name="keyword" class="input outline-none py-1 px-2 rounded-lg inter w-24" placeholder="i.e. input" value="{{ data['keyword'] }}" suggested="text"></input>
+                    </b>
+                </td>
+            </tr>
+        {% else %}
+            <tr>
+                <td class="py-1 fond-bold inter darkblue text-lg border-b border-slate-800" id="set_3">
+                    <b>Your Token:</b>
+                    <input name="token" id="token" value="{{ data['token'] }}" class="hidden"/>
+                </td>
+                <td>
+                    <span class="text-sm blue inline-block">
+                        <i id="token_text" onclick="copyTextToClipboardFromName('token');">{{ data['token'] }}</i>
+                        <img id="copy_icon" src="{{ url_for('static', filename='img/copy(Gregor_Cresnar).png') }}" width="16" class="inline-block" alt="Copy" onclick="copy('token', this.id, 'Copied!');"/>
+                    </span>
+                </td>
+            </tr>
+        {% endif %}
+            <tr>
+                <td class="py-1 fond-bold inter darkblue text-lg border-b border-slate-800 pb-3">
+                    <b>Password:</b>
+                    <div id="password_update" class="mt-4 hidden">
+                        <p class="text-sm"> <b> Set Password </b></p>
+                        <input type="password" id="new_password" name="new_password" class="input outline-none py-1 px-2 rounded-lg inter" placeholder="Your new Password" onchange="enableSaveButton();" autocomplete="new-password"></input>
+                        <p class="text-sm mt-4"> <b> Confirm Password </b></p>
+                        <input type="password" id="confirm_password" name="confirm_password" class="input outline-none py-1 px-2 rounded-lg inter" placeholder="New Password Again" onchange="enableSaveButton();" autocomplete="new-password"></input>
+                        <p id="error_password" class="text-sm label_red mt-1 hidden"> <b> Error: </b> Passwords do not match </p>
+                        <p id="success_password" class="text-sm label_green mt-1 hidden"> 
+                            <b> Success: </b> Passwords match. <br> 
+                            <i> When entering the old password below to confirm, the password will be updated </i>
+                        </p>
+                    </div>
+                </td>
+                <td class="py-1 fond-bold inter darkblue text-lg align-top">
+                    <b>
+                        <label id="open_password_update"  class="text-white darkblue_bg outline-none focus:outline-none inter rounded-lg text-md px-4 py-1 text-center inline-flex items-center me-2 hover:opacity-95" onclick="openPasswordUpdate(); enableSaveButton();">
+                            <img src="{{ url_for('static', filename='img/update(Becris).png') }}" class="w-4 h-4 me-2"/>
+                            Update
+                        </label>
+                        <label id="cancel_password_update" class="text-white darkred_bg outline-none focus:outline-none inter rounded-lg text-md px-4 py-1 text-center inline-flex items-center me-2 hover:opacity-95 hidden" onclick="cancelPasswordUpdate(); enableSaveButton();">
+                            <img src="{{ url_for('static', filename='img/close(Bharat).png') }}" class="w-5 h-5 me-2"/>
+                            Cancel
+                        </label>
+                    </b>
+                </td>
+            </tr>
+            <tr>
+                <td class="title blue text-xl pt-5">Artificial Intelligence</td>
             </tr>
             <tr>
                 <td class="py-1 fond-bold inter darkblue text-lg border-b border-slate-800"><b>A.I. Provider:</b></td>
@@ -199,6 +239,42 @@
                             {% endfor %}
                         </select>
                     </b>
+                </td>
+            </tr>
+            <tr>
+                <td class="py-1 fond-bold inter darkblue text-lg border-b border-slate-800" id="set_1"><b>Show sources:</b></td>
+                <td class="py-1 fond-bold inter darkblue text-lg">
+                {% if data['remove_sources'] %}
+                <input type="radio" id="off_rad_1" name="remove_sources" value="true" class="hidden" oninput="turnOff('on_1', 'off_1', 'set_1')" checked>
+                    <label for="off_rad_1" id="off_1" class="label_red"><b>OFF</b></label>
+                    <p class="inline-block mx-1"> - </p>
+                    <input type="radio" id="on_rad_1" name="remove_sources" value="false" class="hidden" oninput="turnOn('on_1', 'off_1', 'set_1')">
+                    <label for="on_rad_1" id="on_1" class="label_gray"><b>ON</b></label>
+                {% else %}
+                    <input type="radio" id="off_rad_1" name="remove_sources" value="true" class="hidden" oninput="turnOff('on_1', 'off_1', 'set_1')">
+                    <label for="off_rad_1" id="off_1" class="label_gray"><b>OFF</b></label>
+                    <p class="inline-block mx-1"> - </p>
+                    <input type="radio" id="on_rad_1" name="remove_sources" value="false" class="hidden" oninput="turnOn('on_1', 'off_1', 'set_1')" checked>
+                    <label for="on_rad_1" id="on_1" class="label_green"><b>ON</b></label>
+                {% endif %}
+                </td>
+            </tr>
+            <tr>
+                <td class="py-1 fond-bold inter darkblue text-lg border-b border-slate-800" id="set_2"><b>Message history:</b></td>
+                <td class="py-1 fond-bold inter darkblue text-lg">
+                {% if data['message_history'] %}
+                <input type="radio" id="off_rad_2" name="message_history" value="false" class="hidden" oninput="turnOff('on_2', 'off_2', 'set_2')">
+                    <label for="off_rad_2" id="off_2" class="label_gray"><b>OFF</b></label>
+                    <p class="inline-block mx-1"> - </p>
+                    <input type="radio" id="on_rad_2" name="message_history" value="true" class="hidden" oninput="turnOn('on_2', 'off_2', 'set_2')" checked>
+                    <label for="on_rad_2" id="on_2" class="label_green"><b>ON</b></label>
+                {% else %}
+                    <input type="radio" id="off_rad_2" name="message_history" value="false" class="hidden" oninput="turnOff('on_2', 'off_2', 'set_2')" checked>
+                    <label for="off_rad_2" id="off_2" class="label_red"><b>OFF</b></label>
+                    <p class="inline-block mx-1"> - </p>
+                    <input type="radio" id="on_rad_2" name="message_history" value="true" class="hidden" oninput="turnOn('on_2', 'off_2', 'set_2')">
+                    <label for="on_rad_2" id="on_2" class="label_gray"><b>ON</b></label>
+                {% endif %}
                 </td>
             </tr>
             <tr>
@@ -221,64 +297,97 @@
                 </td>
             </tr>
             <tr>
-                <td class="py-1 fond-bold inter darkblue text-lg border-b border-slate-800"><b>Cookies:</b></td>
                 <td class="py-1 fond-bold inter darkblue text-lg">
-                    <b>
-                        <input type="file" id="cookie_file" name="cookie_file" class="input outline-none py-1 px-2 rounded-lg inter w-24 fileholder" placeholder="Cookies" value="{{ data['cookie_file'] }}" accept=".json" oninput="changeButton('cookies_button')" hidden>
-                        {% if data['cookie_file']|length == 0 %}
-                            <label for="cookie_file" id="cookies_button" class="button outline-none py-1 px-4 rounded-lg darkblue_bg inter text-white text-md mt-5 hover:opacity-95 w-24">Upload</label>
-                        {% else %}
-                            <label for="cookie_file" id="change_cookies_button" class="button outline-none py-1 px-4 rounded-lg darkgreen_bg inter text-white text-md mt-5 hover:opacity-95 w-24">Change</label>
-                        {% endif %}
-                    </b>
-                </td>
-            </tr>
-            <tr>
-                <td class="py-1 fond-bold inter darkblue text-lg border-b border-slate-800"><b>Input keyword:</b></td>
-                <td class="py-1 fond-bold inter darkblue text-lg">
-                    <b>
-                        <input type="text" id="keyword" name="keyword" class="input outline-none py-1 px-2 rounded-lg inter w-24" placeholder="i.e. input" value="{{ data['keyword'] }}" suggested="text"></input>
-                    </b>
-                </td>
-            </tr>
-            <tr>
-                <td class="py-1 fond-bold inter darkblue text-lg border-b border-slate-800 pb-3">
-                    <b>Password:</b>
-                    <div id="password_update" class="mt-4" hidden>
-                        <p class="text-sm"> <b> Set Password </b></p>
-                        <input type="password" id="new_password" name="new_password" class="input outline-none py-1 px-2 rounded-lg inter" placeholder="Your new Password" onchange="enableSaveButton();" autocomplete="new-password"></input>
-                        <p class="text-sm mt-4"> <b> Confirm Password </b></p>
-                        <input type="password" id="confirm_password" name="confirm_password" class="input outline-none py-1 px-2 rounded-lg inter" placeholder="New Password Again" onchange="enableSaveButton();" autocomplete="new-password"></input>
-                        <p id="error_password" class="text-sm label_red mt-1" hidden> <b> Error: </b> Passwords do not match </p>
-                        <p id="success_password" class="text-sm label_green mt-1" hidden> 
-                            <b> Success: </b> Passwords match. <br> 
-                            <i> When entering the old password below to confirm, the password will be updated </i>
-                        </p>
-                    </div>
-                </td>
-                <td class="py-1 fond-bold inter darkblue text-lg align-top">
-                    <b>
-                        <label id="open_password_update" class="button outline-none py-1 px-4 rounded-lg darkgreen_bg inter text-white text-md mt-5 hover:opacity-95 w-24" onclick="openPasswordUpdate(); enableSaveButton();">Update</label>
-                        <label id="cancel_password_update" class="button outline-none py-1 px-4 rounded-lg darkred_bg inter text-white text-md mt-5 hover:opacity-95 w-24" onclick="cancelPasswordUpdate(); enableSaveButton();" hidden>Cancel</label>
-                    </b>
-                </td>
-            </tr>
-            <tr>
-                <td class="py-1 fond-bold inter darkblue text-lg border-b border-slate-800">
                     <b>System Prompt:</b>
                     <textarea type="text" id="system_prompt" name="system_prompt" class="input outline-none py-1 px-2 my-2 rounded-lg inter w-full font-normal" placeholder="i.e. You're a virtual flight assistant, from now on follow your role for every answer.">{{ data['system_prompt'] }}</textarea>
                 </td>
             </tr>
+            {% if username == "admin" %}
+            <tr>
+                <td class="title blue text-xl pt-5">Users</td>
+            </tr>
+            <tr>
+                <td class="py-1 fond-bold inter darkblue text-lg border-b border-slate-800" id="set_6"><b>Virtual Users:</b></td>
+                <td class="py-1 fond-bold inter darkblue text-lg">
+                {% if data['virtual_users'] %}
+                    <input type="radio" id="off_rad_6" name="virtual_users" value="false" class="hidden" oninput="turnOff('on_6', 'off_6', 'set_6'); hideElementClass('user')">
+                    <label for="off_rad_6" id="off_6" class="label_gray"><b>OFF</b></label>
+                    <p class="inline-block mx-1"> - </p>
+                    <input type="radio" id="on_rad_6" id="virtual_users" name="virtual_users" value="true" class="hidden" oninput="turnOn('on_6', 'off_6', 'set_6'); showElementClass('user')" checked>
+                    <label for="on_rad_6" id="on_6" class="label_green"><b>ON</b></label>
+                {% else %}
+                    <input type="radio" id="off_rad_6" name="virtual_users" value="false" class="hidden" oninput="turnOff('on_6', 'off_6', 'set_6'); hideElementClass('user')" checked>
+                    <label for="off_rad_6" id="off_6" class="label_red"><b>OFF</b></label>
+                    <p class="inline-block mx-1"> - </p>
+                    <input type="radio" id="on_rad_6" id="virtual_users" name="virtual_users" value="true" class="hidden" oninput="turnOn('on_6', 'off_6', 'set_6'); showElementClass('user')">
+                    <label for="on_rad_6" id="on_6" class="label_gray"><b>ON</b></label>
+                {% endif %}
+                </td>
+            </tr>
+            {% if data['virtual_users'] %}
+            <tr id="add_user" class="user">
+            {% else %}
+            <tr id="add_user" class="user hidden">
+            {% endif %}
+                <td class="py-1 fond-bold inter darkblue text-lg border-b border-slate-800">
+                    <div>
+                        <div class="flex justify-start mb-3">
+                            <input type="text" id="new_user" class="input outline-none py-1 px-2 rounded-lg inter" placeholder="Create a new user..." value="" onchange="showElement('ELEMENT')" readonly>
+                        </div>
+                    </div>
+                </td>
+                <td class="py-1 fond-bold inter darkblue text-lg align-top">
+                    <button type="button" id="add_user_0" class="text-white darkgreen_bg outline-none focus:outline-none inter rounded-lg text-md px-4 py-1 text-center inline-flex items-center me-2 hover:opacity-95" onclick="enableEditing('new_user'); replaceElement(this.id, 'confirm_user_0'); focusOnInput('new_user')">
+                        <img src="{{ url_for('static', filename='img/add(PixelPerfect).png') }}" class="w-3.5 h-3.5 me-2"/>
+                        <b>Add</b>
+                    </button>
+                    <button type="button" id="confirm_user_0" class="text-white darkgreen_bg outline-none focus:outline-none inter rounded-lg text-md px-4 py-1 text-center inline-flex items-center me-2 hover:opacity-95 hidden" onclick="disableEditing('new_user'); replaceElement(this.id, 'add_user_0'); addUser('new_user')">
+                        <img src="{{ url_for('static', filename='img/check(iconmasadepan).png') }}" class="w-3.5 h-3.5 me-2"/>
+                        <b>Confirm</b>
+                    </button>
+                </td>
+            </tr>
+            {% for user in users_data %}
+
+            <tr id="user_{{user.token}}" class="user">
+                <td class="py-1 fond-bold inter darkblue text-lg border-b border-slate-800">
+                    <div>
+                        <div class="flex justify-start mb-3">
+                            <img id="delete_icon" src="{{ url_for('static', filename='img/delete(Anggara).png') }}" width="32" class="inline-block mx-2 p-0.5 hover:brightness-125" alt="Delete" onclick="deleteElement('user_{{user.token}}');"/>
+                            <input type="text" id="username_{{user.token}}" name="username_{{user.token}}" class="input outline-none py-1 px-2 rounded-lg inter" placeholder="username_{{user.token}}" value="{{user['username']}}" onchange="showElement('ELEMENT')" readonly>
+                        </div>
+                    </div>
+                </td>
+                <td class="py-1 fond-bold inter darkblue text-lg align-top">
+                    <button type="button" id="edit_user_{{user.token}}" class="text-white darkblue_bg outline-none focus:outline-none inter rounded-lg text-md px-4 py-1 text-center inline-flex items-center me-2 hover:opacity-95" onclick="enableEditing('username_{{user.token}}'); replaceElement(this.id, 'confirm_user_{{user.token}}'); focusOnInput('username_{{user.token}}')">
+                        <img src="{{ url_for('static', filename='img/edit(PixelPerfect).png') }}" class="w-3.5 h-3.5 me-2"/>
+                        <b>Edit</b>
+                    </button>
+                    <button type="button" id="confirm_user_{{user.token}}" class="text-white darkgreen_bg outline-none focus:outline-none inter rounded-lg text-md px-4 py-1 text-center inline-flex items-center me-2 hover:opacity-95 hidden" onclick="disableEditing('username_{{user.token}}'); replaceElement(this.id, 'edit_user_{{user.token}}')">
+                        <img src="{{ url_for('static', filename='img/check(iconmasadepan).png') }}" class="w-3.5 h-3.5 me-2"/>
+                        <b>Confirm</b>
+                    </button>
+                </td>
+            </tr>
+            
+            {% endfor %}
+            {% endif %}
         </table>
         <!-- enter password to confirm -->
         <div class="flex justify-start mt-12">
-            <input type="password" id="password" name="password" class="input outline-none py-3 px-4 rounded-lg inter w-60" placeholder="Enter password to confirm" onchange="enableSaveButton();"  autocomplete="current-password">
+            <div class="control relative">
+                <!-- Password Input with Custom Icon -->
+                <div class="absolute inset-y-0 left-3 flex items-center pointer-events-none">
+                    <img src="{{ url_for('static', filename='img/password(Freepik).png') }}" alt="Password Icon" class="w-5 h-5">
+                </div>
+                <input type="password" id="password" name="password" class="input outline-none py-3 pl-10 pr-4 rounded-lg inter w-64" placeholder="Enter password to confirm" onchange="enableSaveButton();"  autocomplete="current-password" required>
+            </div>
         </div>
         <!-- save and apply button -->
         <div class="flex justify-start">
-            <button type="submit" id="save" hidden>Save and apply</button>
+            <button type="submit" id="save" class="hidden">Save and apply</button>
             <!-- dummy label gray -->
-            <label for="save" id="save_label" class="button outline-none py-3 px-4 pl-5 rounded-lg darkblue_bg inter text-white text-md mt-3 hover:opacity-95 w-40" hidden>Save and apply</label>
+            <label for="save" id="save_label" class="button outline-none py-3 px-4 pl-5 rounded-lg darkblue_bg inter text-white text-md mt-3 hover:opacity-95 w-40 hidden">Save and apply</label>
             <label id="save_label_dummy" class="button outline-none py-3 px-4 pl-5 rounded-lg bg-slate-300 inter text-white text-md mt-3 w-40">Save and apply</label>
         </div>
     </form>

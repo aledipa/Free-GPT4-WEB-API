@@ -18,6 +18,7 @@ from flask import request
 import getpass
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
+from DBManager import DBM
 
 
 
@@ -35,32 +36,19 @@ PROXIES_FILE = "./data/proxies.json"
 # Available providers
 PROVIDERS = {
     "Auto": "",
-    "Acytoo": g4f.Provider.Acytoo,
-    "Aichat": g4f.Provider.Aichat,
-    "Ails": g4f.Provider.Ails,
     "BlackBox": g4f.Provider.Blackbox,
-    "Chatgpt4o": g4f.Provider.Chatgpt4o,
-    "ChatGpt": g4f.Provider.ChatGpt,
-    "ChatGptt" : g4f.Provider.ChatGptt,
     "DeepInfraChat": g4f.Provider.DeepInfraChat,
-    "Glider": g4f.Provider.Glider,
-    "H2o": g4f.Provider.H2o,
     "HuggingChat": g4f.Provider.HuggingChat,
-    "Opchatgpts": g4f.Provider.Opchatgpts,
-    "OpenAssistant": g4f.Provider.OpenAssistant,
     "OpenaiChat": g4f.Provider.OpenaiChat,
-    "Raycast": g4f.Provider.Raycast,
-    "Theb": g4f.Provider.Theb,
-    "Wewordle": g4f.Provider.Wewordle,
+    "Wewordle": g4f.Provider.WeWordle,
     "You": g4f.Provider.You,
     "Yqcloud": g4f.Provider.Yqcloud,
-    "Pizzagpt": g4f.Provider.Pizzagpt,
     "HuggingChat": g4f.Provider.HuggingChat,
     "HuggingFace": g4f.Provider.HuggingFace
     
 }
 
-GENERIC_MODELS = ["gpt-3.5-turbo", "gpt-4", "gpt-4o", "gpt-4o-mini"]
+GENERIC_MODELS = ["gpt-4", "gpt-4o", "gpt-4o-mini"]
 
 
 print(
@@ -163,6 +151,12 @@ parser.add_argument(
     required=False,
     help="Use the fast API standard (PORT 1337 - compatible with OpenAI integrations)",
 )
+parser.add_argument(
+    "--enable-virtual-users",
+    action='store_true',
+    required=False,
+    help="Giives the chance to create and manage new users",
+)
 
 args, unknown = parser.parse_known_args()
 
@@ -203,7 +197,8 @@ def load_settings(file=SETTINGS_FILE):
         "message_history": data[10],
         "proxies": data[11],
         "password": data[12],
-        "fast_api": data[13]
+        "fast_api": data[13],
+        "virtual_users": data[14]
     }
     print(data)
     return data
@@ -256,12 +251,7 @@ if (args.enable_fast_api or data["fast_api"]):
     start_fast_api()
 
 
-# Initializes the message history
-message_history = [{"role": "system", "content": args.system_prompt}]
-
 if (args.enable_gui):
-    # Asks for password to set to lock the settings page
-    # Checks if settings.db contains a password
     try:
         set_password = True
         if (args.password != None):
@@ -316,6 +306,7 @@ def save_settings(request, file):
     c.execute("UPDATE settings SET message_history = ?", (bool(request.form["message_history"] == "true"),))
     c.execute("UPDATE settings SET proxies = ?", (bool(request.form["proxies"] == "true"),))
     c.execute("UPDATE settings SET fast_api = ?", (bool(request.form["fast_api"] == "true"),))
+    c.execute("UPDATE settings SET virtual_users = ?", (bool(request.form["virtual_users"] == "true"),))
     if (len(request.form["new_password"]) > 0):
         c.execute("UPDATE settings SET password = ?", (generate_password_hash(request.form["new_password"]),))
 
@@ -370,6 +361,72 @@ def save_settings(request, file):
 
     conn.commit()
     conn.close()
+
+    if (bool(request.form["virtual_users"] == "true")):
+        dbm = DBM()
+        old_tokens = dbm.get_tokens()
+        new_users = []
+        print(str(request.form))
+        # the user's key is 'username_<tokenvalue>' (with the literal word "username", the real username is stored in the value), extract the token value from the key and associate it with the correct username
+        new_tokens = [key.split("_")[1] for key in request.form.keys() if key.startswith('username_')]
+        new_users = [value for key, value in request.form.items() if key.startswith('username_')]
+        # combine the two lists into a dictionary
+        new_users = dict(zip(new_tokens, new_users))
+
+        # adds the new users to the database
+        for token in new_users:
+            if (token not in old_tokens):
+                dbm.add_user_by_token(token, new_users[token])
+        
+        # updates the users in the database (new usernames) with dbm.rename_user_by_token
+        for token in new_users:
+            if (token in old_tokens):
+                dbm.rename_user_by_token(token, new_users[token])
+
+        # removes the old users from the database
+        removed_users = list(set(old_tokens) - set(new_users))
+
+        for user_to_delete in removed_users:
+            dbm.delete_user_by_token(user_to_delete)
+
+    return
+
+def save_user_settings(request, file, username):
+    print("Saving user settings for: " + username)
+    conn = sqlite3.connect(file)
+    c = conn.cursor()
+
+    c.execute("UPDATE personal SET provider = ? WHERE username = ?", (request.form["provider"], username))
+    c.execute("UPDATE personal SET model = ? WHERE username = ?", (request.form["model"], username))
+    c.execute("UPDATE personal SET system_prompt = ? WHERE username = ?", (request.form["system_prompt"], username))
+    c.execute("UPDATE personal SET message_history = ? WHERE username = ?", (bool(request.form["message_history"] == "true"), username))
+    
+    conn.commit()
+    conn.close()
+
+    if (request.form["new_password"] != ""):
+        password = request.form["new_password"]
+        confirm_password = request.form["confirm_password"]
+        if (password == "" or confirm_password == ""):
+            print("[X] Password cannot be empty")
+            exit()
+
+        if ((password != confirm_password)):
+            print("[X] Passwords don't match")
+            exit()
+        else:
+            password = generate_password_hash(password)
+            print("[V] Password set.")
+            try:
+                conn = sqlite3.connect(SETTINGS_FILE)
+                c = conn.cursor()
+                c.execute("UPDATE personal SET password = ? WHERE username = ?", (password, username))
+                conn.commit()
+                conn.close()
+                print("[V] Password saved.")
+            except Exception as error:
+                print("[X] Error:", error)
+                exit()
     return
 
 # Loads the settings from the file and updates the args
@@ -388,6 +445,7 @@ def apply_settings(file):
     args.enable_proxies = data["proxies"]
     args.password = data["password"]
     args.enable_fast_api = data["fast_api"]
+    args.enable_virtual_users = data["virtual_users"]
     return
 
 
@@ -400,6 +458,11 @@ async def index() -> str:
     # Starts the bot and gets the input
     print("Initializing...")
     question = None
+    model = args.model
+    provider = args.provider
+    system_prompt = args.system_prompt
+    user = "admin"
+    chat_history = [{"role": "system", "content": system_prompt}]  # Initializes the chat history
 
     print("start")
     if request.method == "GET":
@@ -407,6 +470,56 @@ async def index() -> str:
         print(args.private_mode)
         if (args.private_mode and request.args.get("token") != data["token"]):
             return "<p id='response'>Invalid token</p>"
+        print("Virtual users: " + str(args.enable_virtual_users))
+        if (args.enable_virtual_users):
+            token = request.args.get("token")
+            if (token != None):
+                # Checks if the token is valid
+                dbm = DBM()
+                user = dbm.get_username_by_token(token)
+                if (user == None):
+                    return "<p id='response'>Invalid token</p>"
+                elif (user == "admin"):
+                    print("Admin user")
+                    # Initializes the message history
+                    if (args.enable_history):
+                        # Loads the message history from the database
+                        chat_history = json.loads(dbm.get_admin_chat_history())
+                    chat_history.append({"role": "user", "content": question})
+                    chat_history.insert(0, {"role": "system", "content": system_prompt})
+                else:
+                    print("Virtual user: " + user)
+                        
+                    # Loads the user settings
+                    data = dbm.get_user_settings(user)
+                    model = data["model"]
+                    provider = data["provider"]
+                    system_prompt = data["system_prompt"]
+                    message_history = data["message_history"]
+                    print("User settings loaded: " + str(data))
+
+                    if (message_history):
+                        if (len(dbm.get_user_chat_history(user)) == 0):
+                            chat_history = [{"role": "system", "content": system_prompt}]
+                        else:
+                            chat_history = json.loads(dbm.get_user_chat_history(user))
+                    chat_history.append({"role": "user", "content": question})
+                    chat_history.insert(0, {"role": "system", "content": system_prompt})
+        else:
+            if (args.enable_history):
+                print("[i] History enabled")
+                dbm = DBM()
+                if (len(dbm.get_admin_chat_history()) == 0):
+                    chat_history = [{"role": "system", "content": system_prompt}]
+                else:
+                    chat_history = json.loads(dbm.get_admin_chat_history())
+                chat_history.append({"role": "user", "content": question})
+            else:
+                print("[i] History disabled")
+                chat_history.clear()
+                chat_history.append({"role": "system", "content": system_prompt})
+                chat_history.append({"role": "user", "content": question})
+        
         print("get")
     else:
         file = request.files["file"]
@@ -434,16 +547,6 @@ async def index() -> str:
     else:
         cookies = {"a": "b"} # Dummy cookies
 
-
-    if (args.enable_history):
-        print("History enabled")
-        message_history.append({"role": "user", "content": question})
-    else:
-        print("History disabled")
-        message_history.clear()
-        message_history.append({"role": "system", "content": args.system_prompt})
-        message_history.append({"role": "user", "content": question})
-
     proxy = None
     if (args.enable_proxies):
         # Extracts a proxy from the list
@@ -455,8 +558,8 @@ async def index() -> str:
     if (args.provider == "Auto"):
         response = (
             await g4f.ChatCompletion.create_async(
-                model=args.model,
-                messages=message_history,
+                model=model,
+                messages=chat_history,
                 cookies=cookies,
                 proxy=proxy
             )
@@ -464,9 +567,9 @@ async def index() -> str:
     else:
         response = (
             await g4f.ChatCompletion.create_async(
-                model=args.model,
-                provider=args.provider,
-                messages=message_history,
+                model=model,
+                provider=provider,
+                messages=chat_history,
                 cookies=cookies,
                 proxy=proxy
             )
@@ -486,6 +589,20 @@ async def index() -> str:
             if len(resp_str) > 1:
                 resp_str.pop(0)
             resp_str = re.sub(r"\[\^[0-9]+\^\]\[[0-9]+\]", "", str(resp_str[0]))
+
+    if (args.enable_history):
+        chat_history.append({"role": "assistant", "content": resp_str})
+    # Saves the chat history to the database
+    if (args.enable_virtual_users):
+        # dbm = DBM()
+        if (user == "admin"):
+            if (args.enable_history):
+                dbm.save_admin_chat_history(json.dumps(chat_history))
+        else:
+            message_history = dbm.get_user_settings(user)["message_history"]
+            if (message_history):
+                dbm.save_user_chat_history(user, json.dumps(chat_history))
+
     # Returns the response
     return resp_str
     # return "<p id='response'>" + resp + "</p>" # Uncomment if preferred
@@ -496,6 +613,9 @@ def auth():
     # Checks if the password is set
     if (data["password"] != ""):
         if (request.method == "POST"):
+            username = request.form["username"]
+            if (username != "admin"):
+                return False
             password = request.form["password"]
             if (check_password_hash(data["password"], password)):
                 return True
@@ -506,23 +626,60 @@ def auth():
     else:
         return True
 
+def user_auth():
+    if (args.enable_virtual_users):
+        # Reads the password from the data file
+        dbm = DBM()
+        data = dbm.get_all_users_settings()
+        # Checks if the password is set
+        if (request.method == "POST"):
+            username = request.form["username"]
+            password = request.form["password"]
+            for user in data:
+                if (user["username"] == username and check_password_hash(user["password"], password)):
+                    return True
+            return False
+        else:
+            return False
+    else:
+        return True
+
 @app.route("/login", methods=["GET", "POST"])
 async def login():
     if (args.enable_gui):
+        virtual_users = args.enable_virtual_users
         return render_template("login.html", **locals())
     else:
         return "The GUI is disabled. In order to enable it, use the --enable-gui argument."
 
 @app.route("/settings", methods=["GET", "POST"])
 async def settings():
+    virtual_users = args.enable_virtual_users
     if (request.method == "GET"):
         return redirect("/login", code=302)
     if (auth()):
         try:
+            username = "admin"
             providers=PROVIDERS
             generic_models=GENERIC_MODELS
             data = load_settings()
             proxies = json.loads(open(PROXIES_FILE).read())
+            if (args.enable_virtual_users):
+                dbm = DBM()
+                users_data = dbm.get_all_users_settings()
+            return render_template("settings.html", **locals())
+        except Exception as error:
+            print("[X] Error:", error)
+            return "Error: " + str(error)
+    elif (user_auth()):
+        try:
+            username = request.form["username"]
+            if (args.enable_virtual_users):
+                providers=PROVIDERS
+                generic_models=GENERIC_MODELS
+                dbm = DBM()
+                data = dbm.get_user_settings(username)
+                print(data)   
             return render_template("settings.html", **locals())
         except Exception as error:
             print("[X] Error:", error)
@@ -546,6 +703,23 @@ async def save():
             return "Error: " + str(error)
     else:
         return render_template("login.html", **locals())
+    
+@app.route("/save/<username>", methods=["POST"])
+def save_user(username):
+    if (user_auth()):
+        try:
+            if (request.method == "POST"):
+                save_user_settings(request, SETTINGS_FILE, username)
+
+                return "New settings saved and applied successfully!"
+            else:
+                return render_template("login.html", **locals())
+        except Exception as error:
+            print("[X] Error:", error)
+            return "Error: " + str(error)
+    else:
+        virtual_users = args.enable_virtual_users
+        return render_template("login.html", **locals())
 
 @app.route("/models", methods=["GET"])
 async def get_models():
@@ -558,7 +732,7 @@ async def get_models():
         return ["default"]
 
 @app.route("/generatetoken", methods=["GET", "POST"])
-async def get_token():
+def get_token():
     return str(uuid4())
 
 if __name__ == "__main__":

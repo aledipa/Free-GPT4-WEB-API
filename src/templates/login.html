@@ -31,9 +31,38 @@
     <div class="flex justify-center w-screen h-96">
         <div class="flex items-center">
             <form method="POST" action="/settings">
-                <div class="field">
+                {% if virtual_users %}
+                <div class="field mb-5">
                     <div class="control">
-                        <input class="input outline-none py-3 px-4 rounded-lg inter w-56" type="password" name="password" placeholder="Your Password">
+                        <div class="control relative">
+                            <!-- Username Input with Custom Icon -->
+                            <div class="absolute inset-y-0 left-3 flex items-center pointer-events-none">
+                                <img src="{{ url_for('static', filename='img/user(Freepik).png') }}" alt="User Icon" class="w-5 h-5">
+                            </div>
+                            <input
+                                class="input outline-none py-3 pl-10 pr-4 rounded-lg inter w-56"
+                                type="text"
+                                name="username"
+                                placeholder="Your Username"
+                            >
+                        </div>
+                    </div>
+                </div>
+                {% else %}
+                <input type="hidden" name="username" value="admin">
+                {% endif %}
+                <div class="field">
+                    <div class="control relative">
+                        <!-- Password Input with Custom Icon -->
+                        <div class="absolute inset-y-0 left-3 flex items-center pointer-events-none">
+                            <img src="{{ url_for('static', filename='img/password(Freepik).png') }}" alt="Password Icon" class="w-5 h-5">
+                        </div>
+                        <input
+                            class="input outline-none py-3 pl-10 pr-4 rounded-lg inter w-56"
+                            type="password"
+                            name="password"
+                            placeholder="Your Password"
+                        >
                     </div>
                 </div>
                 <button class="button outline-none py-3 px-4 rounded-lg darkblue_bg inter text-white text-md mt-5 hover:opacity-95 w-56">Login</button>

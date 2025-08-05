@@ -20,20 +20,36 @@ function changeButton(buttonID) {
 
 // Hides an element and shows another
 function replaceElement(idToHide, idToShow) {
-  document.getElementById(idToHide).hidden = true;
-  document.getElementById(idToShow).hidden = false;
+  document.getElementById(idToHide).classList.add("hidden");
+  document.getElementById(idToShow).classList.remove("hidden");
 }
 
 // Shows an element
 function showElement(idToShow) {
   element = document.getElementById(idToShow);
-  element.hidden = false;
+  element.classList.remove("hidden");
 }
 
 // Hides an element
 function hideElement(idToHide) {
   element = document.getElementById(idToHide);
-  element.hidden = true;
+  element.classList.add("hidden");
+}
+
+// Shows multiple elements
+function showElementClass(classToShow) {
+  elements = document.getElementsByClassName(classToShow);
+  for (var i=0; i<elements.length; i++) {
+    elements[i].classList.remove("hidden");
+  }
+}
+
+// Hides multiple elements
+function hideElementClass(classToHide) {
+  elements = document.getElementsByClassName(classToHide);
+  for (var i=0; i<elements.length; i++) {
+    elements[i].classList.add("hidden");
+  }
 }
 
 // Hides a composed warning
@@ -44,6 +60,16 @@ function hideWarning(idToHide) {
 // Shows a composed warning
 function showWarning(idToShow) {
   document.getElementById(idToShow).classList.remove("hidden");
+}
+
+// Enables the input
+function enableEditing(idToEnable) {
+  document.getElementById(idToEnable).removeAttribute("readonly");
+}
+
+// Disables the input
+function disableEditing(idToDisable) {
+  document.getElementById(idToDisable).setAttribute("readonly", true);
 }
 
 // Copies the text in the given id to the clipboard
@@ -214,7 +240,8 @@ function cancelPasswordUpdate() {
 // Enables the save button if the password is correct
 function enableSaveButton() {
   var pass_length = document.getElementById("password").value.length;
-  var isPasswordUpdateClosed = document.getElementById("password_update").hidden;
+  // var isPasswordUpdateClosed = document.getElementById("password_update").hidden;
+  var isPasswordUpdateClosed = document.getElementById("password_update").classList.contains("hidden")
   if ((checkPasswordMatch() || isPasswordUpdateClosed) && pass_length > 0) {
     replaceElement('save_label_dummy', 'save_label');
   } else {
@@ -222,7 +249,75 @@ function enableSaveButton() {
   }
 }
 
-// Gets available models for choosen A.I. Provider
+async function fetchToken() {
+  try {
+      const response = await fetch("/generatetoken");
+      const uuid = await response.text();
+      // console.log("Stored UUID:", uuid);
+      return uuid;
+  } catch (error) {
+      console.error("Error fetching token:", error);
+  }
+}
+
+// Adds a new user to the list
+async function addUser(inputId) {
+  const input = document.getElementById(inputId);
+  const username = input.value.trim();
+
+  if (!username) {
+      alert('Please enter a username');
+      return;
+  }
+
+  (async () => {
+      const uuid = await fetchToken();
+      console.log("Token ready for use:", uuid);
+
+      const newRowHtml = `
+      <tr id="user_${uuid}" class="user">
+          <td class="py-1 fond-bold inter darkblue text-lg border-b border-slate-800">
+              <div>
+                  <div class="flex justify-start mb-3">
+                      <img id="delete_icon" src="/static/img/delete(Anggara).png" width="32" class="inline-block mx-2 p-0.5 hover:brightness-125" alt="Delete" onclick="deleteElement('user_${uuid}');"/>
+                      <input type="text" id="username_${uuid}" name="username_${uuid}" class="input outline-none py-1 px-2 rounded-lg inter" placeholder="username_${uuid}" value="${username}" onchange="showElement('ELEMENT')" readonly>
+                  </div>
+              </div>
+          </td>
+          <td class="py-1 fond-bold inter darkblue text-lg align-top">
+              <button type="button" id="edit_user_${uuid}" class="text-white darkblue_bg outline-none focus:outline-none inter rounded-lg text-md px-4 py-1 text-center inline-flex items-center me-2 hover:opacity-95" onclick="enableEditing('username_${uuid}'); replaceElement(this.id, 'confirm_user_${uuid}'); focusOnInput('username_${uuid}')">
+                  <img src="/static/img/edit(PixelPerfect).png" class="w-3.5 h-3.5 me-2"/>
+                  <b>Edit</b>
+              </button>
+              <button type="button" id="confirm_user_${uuid}" class="text-white darkgreen_bg outline-none focus:outline-none inter rounded-lg text-md px-4 py-1 text-center inline-flex items-center me-2 hover:opacity-95 hidden" onclick="disableEditing('username_${uuid}'); replaceElement(this.id, 'edit_user_${uuid}')">
+                  <img src="/static/img/check(iconmasadepan).png" class="w-3.5 h-3.5 me-2"/>
+                  <b>Confirm</b>
+              </button>
+          </td>
+      </tr>
+      `;
+
+      const addUserRow = document.querySelector('tr.user');
+      addUserRow.insertAdjacentHTML('afterend', newRowHtml);
+
+      input.value = '';
+  })();
+}
+
+// Focusses on an input
+
+function focusOnInput(inputId) {
+  const inputElement = document.getElementById(inputId);
+  if (inputElement) {
+      inputElement.focus(); // Focus on the input
+      const length = inputElement.value.length; // Get the length of the input's value
+      inputElement.setSelectionRange(length, length); // Set cursor position to the end
+  } else {
+      console.error(`Element with ID "${inputId}" not found.`);
+  }
+}
+
+// Gets available models for chosen A.I. Provider
 $(document).ready(function () {
   $("#provider").change(function () {
     var inputValue = $(this).val();
@@ -249,4 +344,6 @@ $(document).ready(function () {
       },
     });
   });
+
+  // updateUsernameIds();
 });
