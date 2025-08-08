@@ -367,7 +367,7 @@ def save_settings(request, file):
         old_tokens = dbm.get_tokens()
         new_users = []
         print(str(request.form))
-        # the user's key is 'username_<tokenvalue>' (with the literal word "username", the real username is stored in the value), extract the token value from the key and associate it with the correct username
+        # the user's key is 'username_<tokenvalue>' (with the literal word "username", the real username is stored in the value), extract the token value from the key and associate it with the co[...]
         new_tokens = [key.split("_")[1] for key in request.form.keys() if key.startswith('username_')]
         new_users = [value for key, value in request.form.items() if key.startswith('username_')]
         # combine the two lists into a dictionary
@@ -491,12 +491,12 @@ async def index() -> str:
                     print("Virtual user: " + user)
                         
                     # Loads the user settings
-                    data = dbm.get_user_settings(user)
-                    model = data["model"]
-                    provider = data["provider"]
-                    system_prompt = data["system_prompt"]
-                    message_history = data["message_history"]
-                    print("User settings loaded: " + str(data))
+                    user_settings = dbm.get_user_settings(user)
+                    model = user_settings["model"]
+                    provider = user_settings["provider"]
+                    system_prompt = user_settings["system_prompt"]
+                    message_history = user_settings["message_history"]
+                    print("User settings loaded: " + str(user_settings))
 
                     if (message_history):
                         if (len(dbm.get_user_chat_history(user)) == 0):
