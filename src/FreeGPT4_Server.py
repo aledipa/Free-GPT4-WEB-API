@@ -18,7 +18,10 @@ from flask import request
 import getpass
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
-from DBManager import DBM
+try:
+    from .DBManager import DBM
+except ImportError:
+    from DBManager import DBM
 
 
 
@@ -36,15 +39,23 @@ PROXIES_FILE = "./data/proxies.json"
 # Available providers
 PROVIDERS = {
     "Auto": "",
-    "BlackBox": g4f.Provider.Blackbox,
-    "DeepInfraChat": g4f.Provider.DeepInfraChat,
-    "HuggingChat": g4f.Provider.HuggingChat,
-    "OpenaiChat": g4f.Provider.OpenaiChat,
-    "Wewordle": g4f.Provider.WeWordle,
-    "You": g4f.Provider.You,
+    "ARTA": g4f.Provider.ARTA,
+    "Blackbox": g4f.Provider.Blackbox,
+    "Chatai": g4f.Provider.Chatai,
+    "Cloudflare": g4f.Provider.Cloudflare,
+    "Copilot": g4f.Provider.Copilot,
+    "DeepInfra": g4f.Provider.DeepInfra,
+    "DuckDuckGo": g4f.Provider.DuckDuckGo,
+    "LambdaChat": g4f.Provider.LambdaChat,
+    "OIVSCodeSer0501": g4f.Provider.OIVSCodeSer0501,
+    "OpenAIFM": g4f.Provider.OpenAIFM,
+    "PerplexityLabs": g4f.Provider.PerplexityLabs,
+    "PollinationsAI": g4f.Provider.PollinationsAI,
+    "PollinationsImage": g4f.Provider.PollinationsImage,
+    "TeachAnything": g4f.Provider.TeachAnything,
+    "Together": g4f.Provider.Together,
+    "WeWordle": g4f.Provider.WeWordle,
     "Yqcloud": g4f.Provider.Yqcloud,
-    "HuggingChat": g4f.Provider.HuggingChat,
-    "HuggingFace": g4f.Provider.HuggingFace
     
 }
 
@@ -95,7 +106,7 @@ parser.add_argument(
     "--password",
     action='store',
     required=False,
-    help="Set or change the password for the settings page [mandatory in docker envirtonment]",
+    help="Set or change the password for the settings page [mandatory in docker environment]",
 )
 parser.add_argument(
     "--cookie-file",
@@ -155,7 +166,7 @@ parser.add_argument(
     "--enable-virtual-users",
     action='store_true',
     required=False,
-    help="Giives the chance to create and manage new users",
+    help="Gives the chance to create and manage new users",
 )
 
 args, unknown = parser.parse_known_args()
