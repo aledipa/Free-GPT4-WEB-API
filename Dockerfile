@@ -62,4 +62,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
 
 # Default command
 ENTRYPOINT ["python", "FreeGPT4_Server.py"]
-CMD ["--enable-gui", "--enable-fast-api"]
+CMD ["--enable-gui", "--enable-fast-api", "--password", "admin123"]

@@ -72,7 +72,23 @@ jobs:
     
     - name: Test Docker container
       run: |
-        docker run --rm -d --name test-container freegpt4-api:latest
-        sleep 10
-        docker logs test-container
+        # Start the container
+        docker run -d --name test-container -p 5500:5500 freegpt4-api:latest
+        
+        # Wait for container to start
+        echo "Waiting for container to start..."
+        sleep 30
+        
+        # Check if container is still running
+        if docker ps | grep -q test-container; then
+          echo "Container is running successfully"
+          docker logs test-container
+        else
+          echo "Container failed to start or exited"
+          docker logs test-container
+          exit 1
+        fi
+        
+        # Cleanup
         docker stop test-container || true
+        docker rm test-container || true
