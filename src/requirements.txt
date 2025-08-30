@@ -1,13 +1,29 @@
-curl_cffi
-aiohttp
-aiohttp_socks
-auth
-Flask[async]
-g4f
+# Core dependencies
+Flask[async]>=2.0.0
+g4f>=0.2.0
 Werkzeug>=3.0.3
-aiohttp_socks
-nodriver
-pysqlite3
-python-multipart
-uvicorn
-fastapi
+
+# HTTP and networking
+aiohttp>=3.8.0
+aiohttp_socks>=0.7.0
+curl_cffi>=0.5.0
+
+# Authentication and security
+auth>=0.5.0
+
+# Database
+pysqlite3>=0.4.0
+
+# File handling
+python-multipart>=0.0.5
+
+# Web drivers (for some providers)
+nodriver>=0.17.0
+
+# API server
+uvicorn>=0.20.0
+fastapi>=0.95.0
+
+# Development and testing (optional)
+pytest>=7.0.0
+pytest-asyncio>=0.21.0

@@ -1,751 +1,672 @@
-import re
-import argparse
-import json
-import os
-import random
-import string
-import sqlite3
-from uuid import uuid4
-import threading
+"""FreeGPT4 Web API - A Web API for GPT-4.
 
-# GPT Library
-import g4f
+Repo: github.com/aledipa/FreeGPT4-WEB-API
+By: Alessandro Di Pasquale
+GPT4Free Credits: github.com/xtekky/gpt4free
+"""
+
+import os
+import argparse
+import threading
+import getpass
+import json
+from pathlib import Path
+from typing import Optional
+
+from flask import Flask, request, render_template, redirect, jsonify, session
+from werkzeug.security import generate_password_hash
+from werkzeug.utils import secure_filename
 from g4f.api import run_api
 
-# Server
-from flask import Flask, redirect, render_template
-from flask import request
-import getpass
-from werkzeug.security import generate_password_hash, check_password_hash
-from werkzeug.utils import secure_filename
-try:
-    from .DBManager import DBM
-except ImportError:
-    from DBManager import DBM
+from config import config
+from database import db_manager
+from auth import auth_service, require_auth, require_token_auth
+from ai_service import ai_service
+from utils.logging import logger, setup_logging
+from utils.exceptions import (
+    FreeGPTException, 
+    ValidationError, 
+    AuthenticationError,
+    AIProviderError,
+    FileUploadError
+)
+from utils.validation import (
+    validate_file_upload,
+    validate_port,
+    validate_proxy_format,
+    sanitize_input
+)
+from utils.helpers import (
+    generate_uuid,
+    load_json_file,
+    save_json_file,
+    parse_proxy_url,
+    safe_filename
+)
 
-
-
+# Initialize Flask app
 app = Flask(__name__)
+app.secret_key = config.security.secret_key
+app.config['UPLOAD_FOLDER'] = config.files.upload_folder
+app.config['MAX_CONTENT_LENGTH'] = config.server.max_content_length
 
-UPLOAD_FOLDER = 'data/'
+# Set up logging
+if os.getenv('LOG_LEVEL'):
+    setup_logging(level=os.getenv('LOG_LEVEL'))
 
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-app.config['MAX_CONTENT_LENGTH'] = 16 * 1000 * 1000 # 16 MB
+logger.info("FreeGPT4 Web API - Starting server...")
+logger.info("Repo: github.com/aledipa/FreeGPT4-WEB-API")
+logger.info("By: Alessandro Di Pasquale")
+logger.info("GPT4Free Credits: github.com/xtekky/gpt4free")
 
-# Settings file path
-SETTINGS_FILE = "./data/settings.db"
-PROXIES_FILE = "./data/proxies.json"
-
-# Available providers
-PROVIDERS = {
-    "Auto": "",
-    "ARTA": g4f.Provider.ARTA,
-    "Blackbox": g4f.Provider.Blackbox,
-    "Chatai": g4f.Provider.Chatai,
-    "Cloudflare": g4f.Provider.Cloudflare,
-    "Copilot": g4f.Provider.Copilot,
-    "DeepInfra": g4f.Provider.DeepInfra,
-    "DuckDuckGo": g4f.Provider.DuckDuckGo,
-    "LambdaChat": g4f.Provider.LambdaChat,
-    "OIVSCodeSer0501": g4f.Provider.OIVSCodeSer0501,
-    "OpenAIFM": g4f.Provider.OpenAIFM,
-    "PerplexityLabs": g4f.Provider.PerplexityLabs,
-    "PollinationsAI": g4f.Provider.PollinationsAI,
-    "PollinationsImage": g4f.Provider.PollinationsImage,
-    "TeachAnything": g4f.Provider.TeachAnything,
-    "Together": g4f.Provider.Together,
-    "WeWordle": g4f.Provider.WeWordle,
-    "Yqcloud": g4f.Provider.Yqcloud,
+class ServerArgumentParser:
+    """Parse and manage server arguments."""
     
-}
+    def __init__(self):
+        self.parser = self._create_parser()
+        self.args = None
+    
+    def _create_parser(self) -> argparse.ArgumentParser:
+        """Create argument parser."""
+        parser = argparse.ArgumentParser(description="FreeGPT4 Web API Server")
+        
+        parser.add_argument(
+            "--remove-sources",
+            action='store_true',
+            help="Remove the sources from the response",
+        )
+        parser.add_argument(
+            "--enable-gui",
+            action='store_true',
+            help="Use a graphical interface for settings",
+        )
+        parser.add_argument(
+            "--private-mode",
+            action='store_true',
+            help="Use a private token to access the API",
+        )
+        parser.add_argument(
+            "--enable-proxies",
+            action='store_true',
+            help="Use one or more proxies to avoid being blocked or banned",
+        )
+        parser.add_argument(
+            "--enable-history",
+            action='store_true',
+            help="Enable the history of the messages",
+        )
+        parser.add_argument(
+            "--password",
+            action='store',
+            help="Set or change the password for the settings page [mandatory in docker environment]",
+        )
+        parser.add_argument(
+            "--cookie-file",
+            action='store',
+            type=str,
+            help="Use a cookie file",
+        )
+        parser.add_argument(
+            "--file-input",
+            action='store_true',
+            help="Add the file as input support",
+        )
+        parser.add_argument(
+            "--port",
+            action='store',
+            type=int,
+            help="Change the port (default: 5500)",
+        )
+        parser.add_argument(
+            "--model",
+            action='store',
+            type=str,
+            help="Change the model (default: gpt-4)",
+        )
+        parser.add_argument(
+            "--provider",
+            action='store',
+            type=str,
+            help="Change the provider (default: Auto)",
+        )
+        parser.add_argument(
+            "--keyword",
+            action='store',
+            type=str,
+            help="Add the keyword support",
+        )
+        parser.add_argument(
+            "--system-prompt",
+            action='store',
+            type=str,
+            help="Use a system prompt to 'customize' the answers",
+        )
+        parser.add_argument(
+            "--enable-fast-api",
+            action='store_true',
+            help="Use the fast API standard (PORT 1336 - compatible with OpenAI integrations)",
+        )
+        parser.add_argument(
+            "--enable-virtual-users",
+            action='store_true',
+            help="Gives the chance to create and manage new users",
+        )
+        
+        return parser
+    
+    def parse_args(self):
+        """Parse command line arguments."""
+        self.args, _ = self.parser.parse_known_args()
+        return self.args
 
-GENERIC_MODELS = ["gpt-4", "gpt-4o", "gpt-4o-mini"]
-
-
-print(
-    """
-    FreeGPT4 Web API - A Web API for GPT-4
-    Repo: github.com/aledipa/FreeGPT4-WEB-API
-    By: Alessandro Di Pasquale
-
-    GPT4Free Credits: github.com/xtekky/gpt4free
-    """,
-)
-parser = argparse.ArgumentParser()
-parser.add_argument(
-    "--remove-sources",
-    action='store_true',
-    required=False,
-    help="Remove the sources from the response",
-)
-parser.add_argument(
-    "--enable-gui",
-    action='store_true',
-    required=False,
-    help="Use a graphical interface for settings",
-)
-parser.add_argument(
-    "--private-mode",
-    action='store_true',
-    required=False,
-    help="Use a private token to access the API",
-)
-parser.add_argument(
-    "--enable-proxies",
-    action='store_true',
-    required=False,
-    help="Use one or more proxies to avoid being blocked or banned",
-)
-parser.add_argument(
-    "--enable-history",
-    action='store_true',
-    required=False,
-    help="Enable the history of the messages",
-)
-parser.add_argument(
-    "--password",
-    action='store',
-    required=False,
-    help="Set or change the password for the settings page [mandatory in docker environment]",
-)
-parser.add_argument(
-    "--cookie-file",
-    action='store',
-    required=False,
-    type=str,
-    help="Use a cookie file",
-)
-parser.add_argument(
-    "--file-input",
-    action='store_true',
-    required=False,
-    help="Add the file as input support",
-)
-parser.add_argument(
-    "--port",
-    action='store',
-    required=False,
-    type=str,
-    help="Change the port (default: 5500)",
-)
-parser.add_argument(
-    "--model",
-    action='store',
-    required=False,
-    type=str,
-    help="Change the model (default: gpt_4)",
-)
-parser.add_argument(
-    "--provider",
-    action='store',
-    required=False,
-    type=str,
-    help="Change the provider (default: Bing)",
-)
-parser.add_argument(
-    "--keyword",
-    action='store',
-    required=False,
-    type=str,
-    help="Add the keyword support",
-)
-parser.add_argument(
-    "--system-prompt",
-    action='store',
-    required=False,
-    type=str,
-    help="Use a system prompt to 'customize' the answers",
-)
-parser.add_argument(
-    "--enable-fast-api",
-    action='store_true',
-    required=False,
-    help="Use the fast API standard (PORT 1337 - compatible with OpenAI integrations)",
-)
-parser.add_argument(
-    "--enable-virtual-users",
-    action='store_true',
-    required=False,
-    help="Gives the chance to create and manage new users",
-)
-
-args, unknown = parser.parse_known_args()
-
-# Get the absolute path of the script
-script_path = os.path.abspath(__file__)
-# Get the directory of the script
-script_dir = os.path.dirname(script_path)
-# Change the current working directory
-os.chdir(script_dir)
-
-# Loads the proxies from the file
-if (args.enable_proxies and os.path.exists(PROXIES_FILE)):
-    proxies = json.load(open(PROXIES_FILE))
-else:
-    proxies = None
-
-# Crates the Fast API Thread
-t = threading.Thread(target=run_api,name="fastapi")
-
-# Loads the settings from the file
-def load_settings(file=SETTINGS_FILE):
-    conn = sqlite3.connect(file)
-    c = conn.cursor()
-    c.execute("SELECT * FROM settings")
-    data = c.fetchone()
-    conn.close()
-    # Converts the data to a dictionary
-    data = {
-        "keyword": data[1],
-        "file_input": data[2],
-        "port": data[3],
-        "provider": data[4],
-        "model": data[5],
-        "cookie_file": data[6],
-        "token": data[7],
-        "remove_sources": data[8],
-        "system_prompt": data[9],
-        "message_history": data[10],
-        "proxies": data[11],
-        "password": data[12],
-        "fast_api": data[13],
-        "virtual_users": data[14]
-    }
-    print(data)
-    return data
-
-def start_fast_api():
-    print("[!] FAST API PORT: 1336")
-    t.daemon = True
-    t.start()
-
-# Updates the settings
-data = load_settings()
-if (args.keyword == None):
-    args.keyword = data["keyword"]
-
-if (args.file_input == False):
-    args.file_input = data["file_input"]
-
-if (args.port == None):
-    args.port = data["port"]
-
-if (args.provider == None):
-    args.provider = data["provider"]
-
-if (args.model == None):
-    args.model = data["model"]
-
-if (args.cookie_file == None):
-    args.cookie_file = data["cookie_file"]
-
-if (args.private_mode and data["token"] == ""):
-    token = str(uuid4())
-    data["token"] = token
-elif (data["token"] != ""):
-    token = data["token"]
-    args.private_mode = True
-
-if (args.remove_sources == False):
-    args.remove_sources = data["remove_sources"]
-
-if (args.system_prompt == None):
-    args.system_prompt = data["system_prompt"]
-
-if (args.enable_history == False):
-    args.enable_history = data["message_history"]
-
-if (args.enable_proxies == False):
-    args.enable_proxies = data["proxies"]
-
-if (args.enable_fast_api or data["fast_api"]):
-    start_fast_api()
-
-
-if (args.enable_gui):
-    try:
-        set_password = True
-        if (args.password != None):
-            password = args.password
-            confirm_password = password
-        else:
-            if (data["password"] == ""):
+class ServerManager:
+    """Manage server configuration and state."""
+    
+    def __init__(self, args):
+        self.args = args
+        self.fast_api_thread = None
+        self._setup_working_directory()
+        self._merge_settings_with_args()
+    
+    def _setup_working_directory(self):
+        """Set up working directory."""
+        script_path = Path(__file__).resolve()
+        os.chdir(script_path.parent)
+    
+    def _merge_settings_with_args(self):
+        """Merge database settings with command line arguments."""
+        try:
+            settings = db_manager.get_settings()
+            
+            # Update args with database settings if not specified
+            if not self.args.keyword:
+                self.args.keyword = settings.get("keyword", config.api.default_keyword)
+            
+            if not self.args.file_input:
+                self.args.file_input = settings.get("file_input", True)
+            
+            if not self.args.port:
+                self.args.port = int(settings.get("port", config.server.port))
+            
+            if not self.args.provider:
+                self.args.provider = settings.get("provider", config.api.default_provider)
+            
+            if not self.args.model:
+                self.args.model = settings.get("model", config.api.default_model)
+            
+            if not self.args.cookie_file:
+                self.args.cookie_file = settings.get("cookie_file", config.files.cookies_file)
+            
+            if not self.args.remove_sources:
+                self.args.remove_sources = settings.get("remove_sources", True)
+            
+            if not self.args.system_prompt:
+                self.args.system_prompt = settings.get("system_prompt", "")
+            
+            if not self.args.enable_history:
+                self.args.enable_history = settings.get("message_history", False)
+            
+            if not self.args.enable_proxies:
+                self.args.enable_proxies = settings.get("proxies", False)
+            
+            # Handle private mode token
+            token = settings.get("token", "")
+            if self.args.private_mode and not token:
+                token = generate_uuid()
+                db_manager.update_settings({"token": token})
+            elif token:
+                self.args.private_mode = True
+            
+            self.args.token = token
+            
+            # Handle fast API
+            if self.args.enable_fast_api or settings.get("fast_api", False):
+                self.start_fast_api()
+            
+            # Handle virtual users
+            if not hasattr(self.args, 'enable_virtual_users'):
+                self.args.enable_virtual_users = settings.get("virtual_users", False)
+            
+        except Exception as e:
+            logger.error(f"Failed to merge settings: {e}")
+            # Use defaults
+            self.args.keyword = self.args.keyword or config.api.default_keyword
+            self.args.port = self.args.port or config.server.port
+            self.args.provider = self.args.provider or config.api.default_provider
+            self.args.model = self.args.model or config.api.default_model
+    
+    def start_fast_api(self):
+        """Start Fast API in background thread."""
+        if self.fast_api_thread and self.fast_api_thread.is_alive():
+            return
+        
+        logger.info(f"Starting Fast API on port {config.api.fast_api_port}")
+        self.fast_api_thread = threading.Thread(target=run_api, name="fastapi", daemon=True)
+        self.fast_api_thread.start()
+    
+    def setup_password(self):
+        """Set up admin password if GUI is enabled."""
+        if not self.args.enable_gui:
+            logger.info("GUI disabled - no password setup required")
+            return
+        
+        try:
+            settings = db_manager.get_settings()
+            
+            if self.args.password:
+                # Password provided via command line
+                password = self.args.password
+                confirm_password = password
+            elif not settings.get("password"):
+                # No password set, prompt for new one
                 password = getpass.getpass("Settings page password:\n > ")
                 confirm_password = getpass.getpass("Confirm password:\n > ")
             else:
-                set_password = False
+                # Password already set
+                logger.info("Admin password already configured")
+                return
+            
+            # Validate passwords
+            if not password or not confirm_password:
+                logger.error("Password cannot be empty")
+                exit(1)
+            
+            if password != confirm_password:
+                logger.error("Passwords don't match")
+                exit(1)
+            
+            # Save password
+            db_manager.update_settings({"password": password})
+            logger.info("Admin password configured successfully")
+            
+        except Exception as e:
+            logger.error(f"Failed to setup password: {e}")
+            exit(1)
+# Routes and handlers
+@app.errorhandler(FreeGPTException)
+def handle_freegpt_exception(e):
+    """Handle FreeGPT exceptions."""
+    logger.error(f"FreeGPT error: {e}")
+    return jsonify({"error": str(e)}), 400
 
-        if (set_password):
-            if(password == "" or confirm_password == ""):
-                print("[X] Password cannot be empty")
-                exit()
-
-            if ((password != confirm_password) and (data["password"] == "")):
-                print("[X] Passwords don't match")
-                exit()
-            else:
-                password = generate_password_hash(password)
-                confirm_password = generate_password_hash(confirm_password)
-                print("[V] Password set.")
-                try:
-                    conn = sqlite3.connect(SETTINGS_FILE)
-                    c = conn.cursor()
-                    c.execute("UPDATE settings SET password = ?", (password,))
-                    conn.commit()
-                    conn.close()
-                    print("[V] Password saved.")
-                except Exception as error:
-                    print("[X] Error:", error)
-                    exit()
-    except Exception as error:
-        print("[X] Error:", error)
-        exit()
-else:
-    print("[!] GUI disabled")
-
-# Saves the settings to the file
-def save_settings(request, file):
-    conn = sqlite3.connect(file)
-    c = conn.cursor()
-    c.execute("UPDATE settings SET file_input = ?", (bool(request.form["file_input"] == "true"),))
-    c.execute("UPDATE settings SET remove_sources = ?", (bool(request.form["remove_sources"] == "true"),))
-    c.execute("UPDATE settings SET port = ?", (request.form["port"],))
-    c.execute("UPDATE settings SET model = ?", (request.form["model"],))
-    c.execute("UPDATE settings SET keyword = ?", (request.form["keyword"],))
-    c.execute("UPDATE settings SET provider = ?", (request.form["provider"],))
-    c.execute("UPDATE settings SET system_prompt = ?", (request.form["system_prompt"],))
-    c.execute("UPDATE settings SET message_history = ?", (bool(request.form["message_history"] == "true"),))
-    c.execute("UPDATE settings SET proxies = ?", (bool(request.form["proxies"] == "true"),))
-    c.execute("UPDATE settings SET fast_api = ?", (bool(request.form["fast_api"] == "true"),))
-    c.execute("UPDATE settings SET virtual_users = ?", (bool(request.form["virtual_users"] == "true"),))
-    if (len(request.form["new_password"]) > 0):
-        c.execute("UPDATE settings SET password = ?", (generate_password_hash(request.form["new_password"]),))
-
-    file = request.files["cookie_file"]
-    if (bool(request.form["private_mode"] == "true")):
-        c.execute("UPDATE settings SET token = ?", (request.form["token"],))
-        args.private_mode = True
-    else:
-        c.execute("UPDATE settings SET token = ''")
-        args.private_mode = False
-    #checks if the file is not empty
-    if file.filename != '':
-        #checks if the file is a json file
-        if file.filename.endswith('.json'):
-            #saves the file
-            filename = secure_filename(file.filename)
-            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-            #updates the cookie_file
-            c.execute("UPDATE settings SET cookie_file = ?", (os.path.join(app.config['UPLOAD_FOLDER'], filename),))
-        else:
-            print("The file is not a json file")
-
-    if (args.enable_proxies or bool(request.form["proxies"] == "true")):
-        # Extracts the proxies from the form
-        proxies = []
-        i = 1
-        while True:
-            if (("proxy_" + str(i)) in request.form):
-                proxy = request.form["proxy_" + str(i)]
-                if (proxy != ""):
-                    # Checks if the proxy syntax is correct
-                    if (proxy.count(":") == 3 and proxy.count("@") == 1):
-                        proxy = {
-                            "protocol": proxy.split("://")[0],
-                            "username": proxy.split("://")[1].split(":")[0],
-                            "password": proxy.split("://")[1].split(":")[1].split("@")[0],
-                            "ip": proxy.split("://")[1].split(":")[1].split("@")[1],
-                            "port": proxy.split("://")[1].split(":")[2]
-                        }
-                        proxies.append(proxy)
-                i += 1
-            else:
-                break
-
-        # Saves the proxies to the file proxies.json
-        with open(PROXIES_FILE, "w") as pf:
-            json.dump(proxies, pf)
-            pf.close()
-
-    if (bool(request.form["fast_api"] == "true") and not args.enable_fast_api):
-        start_fast_api()
-
-    conn.commit()
-    conn.close()
-
-    if (bool(request.form["virtual_users"] == "true")):
-        dbm = DBM()
-        old_tokens = dbm.get_tokens()
-        new_users = []
-        print(str(request.form))
-        # the user's key is 'username_<tokenvalue>' (with the literal word "username", the real username is stored in the value), extract the token value from the key and associate it with the co[...]
-        new_tokens = [key.split("_")[1] for key in request.form.keys() if key.startswith('username_')]
-        new_users = [value for key, value in request.form.items() if key.startswith('username_')]
-        # combine the two lists into a dictionary
-        new_users = dict(zip(new_tokens, new_users))
-
-        # adds the new users to the database
-        for token in new_users:
-            if (token not in old_tokens):
-                dbm.add_user_by_token(token, new_users[token])
-        
-        # updates the users in the database (new usernames) with dbm.rename_user_by_token
-        for token in new_users:
-            if (token in old_tokens):
-                dbm.rename_user_by_token(token, new_users[token])
-
-        # removes the old users from the database
-        removed_users = list(set(old_tokens) - set(new_users))
-
-        for user_to_delete in removed_users:
-            dbm.delete_user_by_token(user_to_delete)
-
-    return
-
-def save_user_settings(request, file, username):
-    print("Saving user settings for: " + username)
-    conn = sqlite3.connect(file)
-    c = conn.cursor()
-
-    c.execute("UPDATE personal SET provider = ? WHERE username = ?", (request.form["provider"], username))
-    c.execute("UPDATE personal SET model = ? WHERE username = ?", (request.form["model"], username))
-    c.execute("UPDATE personal SET system_prompt = ? WHERE username = ?", (request.form["system_prompt"], username))
-    c.execute("UPDATE personal SET message_history = ? WHERE username = ?", (bool(request.form["message_history"] == "true"), username))
-    
-    conn.commit()
-    conn.close()
-
-    if (request.form["new_password"] != ""):
-        password = request.form["new_password"]
-        confirm_password = request.form["confirm_password"]
-        if (password == "" or confirm_password == ""):
-            print("[X] Password cannot be empty")
-            exit()
-
-        if ((password != confirm_password)):
-            print("[X] Passwords don't match")
-            exit()
-        else:
-            password = generate_password_hash(password)
-            print("[V] Password set.")
-            try:
-                conn = sqlite3.connect(SETTINGS_FILE)
-                c = conn.cursor()
-                c.execute("UPDATE personal SET password = ? WHERE username = ?", (password, username))
-                conn.commit()
-                conn.close()
-                print("[V] Password saved.")
-            except Exception as error:
-                print("[X] Error:", error)
-                exit()
-    return
-
-# Loads the settings from the file and updates the args
-def apply_settings(file):
-    data = load_settings(file)
-    args.keyword = data["keyword"]
-    args.file_input = data["file_input"]
-    args.port = data["port"]
-    args.provider = data["provider"]
-    args.model = data["model"]
-    args.cookie_file = data["cookie_file"]
-    args.token = data["token"]
-    args.remove_sources = data["remove_sources"]
-    args.system_prompt = data["system_prompt"]
-    args.enable_history = data["message_history"]
-    args.enable_proxies = data["proxies"]
-    args.password = data["password"]
-    args.enable_fast_api = data["fast_api"]
-    args.enable_virtual_users = data["virtual_users"]
-    return
-
+@app.errorhandler(Exception)
+def handle_general_exception(e):
+    """Handle general exceptions."""
+    logger.error(f"Unexpected error: {e}", exc_info=True)
+    return jsonify({"error": "Internal server error"}), 500
 
 @app.route("/", methods=["GET", "POST"])
-async def index() -> str:
-    """
-    Main function
-    """
-
-    # Starts the bot and gets the input
-    print("Initializing...")
-    question = None
-    model = args.model
-    provider = args.provider
-    system_prompt = args.system_prompt
-    user = "admin"
-    chat_history = [{"role": "system", "content": system_prompt}]  # Initializes the chat history
-
-    print("start")
-    if request.method == "GET":
-        question = request.args.get(args.keyword) #text
-        print(args.private_mode)
-        if (args.private_mode and request.args.get("token") != data["token"]):
-            return "<p id='response'>Invalid token</p>"
-        print("Virtual users: " + str(args.enable_virtual_users))
-        if (args.enable_virtual_users):
-            token = request.args.get("token")
-            if (token != None):
-                # Checks if the token is valid
-                dbm = DBM()
-                user = dbm.get_username_by_token(token)
-                if (user == None):
-                    return "<p id='response'>Invalid token</p>"
-                elif (user == "admin"):
-                    print("Admin user")
-                    # Initializes the message history
-                    if (args.enable_history):
-                        # Loads the message history from the database
-                        chat_history = json.loads(dbm.get_admin_chat_history())
-                    chat_history.append({"role": "user", "content": question})
-                    chat_history.insert(0, {"role": "system", "content": system_prompt})
-                else:
-                    print("Virtual user: " + user)
-                        
-                    # Loads the user settings
-                    user_settings = dbm.get_user_settings(user)
-                    model = user_settings["model"]
-                    provider = user_settings["provider"]
-                    system_prompt = user_settings["system_prompt"]
-                    message_history = user_settings["message_history"]
-                    print("User settings loaded: " + str(user_settings))
-
-                    if (message_history):
-                        if (len(dbm.get_user_chat_history(user)) == 0):
-                            chat_history = [{"role": "system", "content": system_prompt}]
-                        else:
-                            chat_history = json.loads(dbm.get_user_chat_history(user))
-                    chat_history.append({"role": "user", "content": question})
-                    chat_history.insert(0, {"role": "system", "content": system_prompt})
-        else:
-            if (args.enable_history):
-                print("[i] History enabled")
-                dbm = DBM()
-                if (len(dbm.get_admin_chat_history()) == 0):
-                    chat_history = [{"role": "system", "content": system_prompt}]
-                else:
-                    chat_history = json.loads(dbm.get_admin_chat_history())
-                chat_history.append({"role": "user", "content": question})
-            else:
-                print("[i] History disabled")
-                chat_history.clear()
-                chat_history.append({"role": "system", "content": system_prompt})
-                chat_history.append({"role": "user", "content": question})
+async def index():
+    """Main API endpoint for chat completion."""
+    try:
+        # Get current settings
+        settings = db_manager.get_settings()
         
-        print("get")
-    else:
-        file = request.files["file"]
-        text = file.read().decode("utf-8")
-        question = text
-        print("Post reading the file", question)
-
-    print("ici")
-    if question is None:
-        return "<p id='response'>Please enter a question</p>"
-
-    # Gets the response from the bot
-    # print(PROVIDERS[args.provider].params)  # supported args
-    print("\nCookies: " + str(len(args.cookie_file)))
-    print("\nInput: " + question)
-    if (len(args.cookie_file) != 0):
-        try:
-            cookies = json.load(open(args.cookie_file)) # Loads the cookies from the file
-            print("COOKIES: "+str(cookies))
-            if (len(cookies) == 0):
-                cookies = {"a": "b"} # Dummy cookies
-        except Exception as error:
-            print("[X] Error:", error)
-            exit()
-    else:
-        cookies = {"a": "b"} # Dummy cookies
-
-    proxy = None
-    if (args.enable_proxies):
-        # Extracts a proxy from the list
-        proxy = random.choice(proxies)
-        # Formats the proxy like https://user:password@host:port
-        proxy = f"{proxy['protocol']}://{proxy['username']}:{proxy['password']}@{proxy['ip']}:{proxy['port']}"
-        print("Proxy: " + proxy)
-
-    if (args.provider == "Auto"):
-        response = (
-            await g4f.ChatCompletion.create_async(
-                model=model,
-                messages=chat_history,
-                cookies=cookies,
-                proxy=proxy
-            )
+        # Extract question from request
+        question = None
+        if request.method == "GET":
+            question = request.args.get(server_manager.args.keyword)
+        else:
+            # Handle file upload
+            if 'file' in request.files:
+                file = request.files['file']
+                is_valid, error_msg = validate_file_upload(file, config.files.allowed_extensions)
+                if not is_valid:
+                    raise FileUploadError(error_msg)
+                
+                question = file.read().decode('utf-8')
+        
+        if not question:
+            return "<p id='response'>Please enter a question</p>"
+        
+        # Sanitize input
+        question = sanitize_input(question, 10000)  # 10KB limit
+        
+        # Verify token access
+        token = request.args.get("token")
+        username = auth_service.verify_token_access(
+            token, 
+            server_manager.args.private_mode
         )
-    else:
-        response = (
-            await g4f.ChatCompletion.create_async(
-                model=model,
-                provider=provider,
-                messages=chat_history,
-                cookies=cookies,
-                proxy=proxy
-            )
+        
+        if server_manager.args.private_mode and not username:
+            return "<p id='response'>Invalid token</p>"
+        
+        if not username:
+            username = "admin"
+        
+        # Generate AI response
+        response_text = await ai_service.generate_response(
+            message=question,
+            username=username,
+            use_history=server_manager.args.enable_history,
+            remove_sources=server_manager.args.remove_sources,
+            use_proxies=server_manager.args.enable_proxies,
+            cookie_file=server_manager.args.cookie_file
         )
-
-    print(response)
-
-    #Joins the response into a single string
-    resp_str = ""
-    for message in response:
-        resp_str += message
-
-    # Cleans the response from the resources links
-    if (args.remove_sources):
-        if re.search(r"\[\^[0-9]+\^\]\[[0-9]+\]", resp_str):
-            resp_str = resp_str.split("\n\n")
-            if len(resp_str) > 1:
-                resp_str.pop(0)
-            resp_str = re.sub(r"\[\^[0-9]+\^\]\[[0-9]+\]", "", str(resp_str[0]))
-
-    if (args.enable_history):
-        chat_history.append({"role": "assistant", "content": resp_str})
-    # Saves the chat history to the database
-    if (args.enable_virtual_users):
-        # dbm = DBM()
-        if (user == "admin"):
-            if (args.enable_history):
-                dbm.save_admin_chat_history(json.dumps(chat_history))
-        else:
-            message_history = dbm.get_user_settings(user)["message_history"]
-            if (message_history):
-                dbm.save_user_chat_history(user, json.dumps(chat_history))
-
-    # Returns the response
-    return resp_str
-    # return "<p id='response'>" + resp + "</p>" # Uncomment if preferred
-
-def auth():
-    # Reads the password from the data file
-    data = load_settings()
-    # Checks if the password is set
-    if (data["password"] != ""):
-        if (request.method == "POST"):
-            username = request.form["username"]
-            if (username != "admin"):
-                return False
-            password = request.form["password"]
-            if (check_password_hash(data["password"], password)):
-                return True
-            else:
-                return False
-        else:
-            return False
-    else:
-        return True
-
-def user_auth():
-    if (args.enable_virtual_users):
-        # Reads the password from the data file
-        dbm = DBM()
-        data = dbm.get_all_users_settings()
-        # Checks if the password is set
-        if (request.method == "POST"):
-            username = request.form["username"]
-            password = request.form["password"]
-            for user in data:
-                if (user["username"] == username and check_password_hash(user["password"], password)):
-                    return True
-            return False
-        else:
-            return False
-    else:
-        return True
+        
+        logger.info(f"Generated response for user '{username}' ({len(response_text)} chars)")
+        return response_text
+        
+    except FreeGPTException as e:
+        logger.error(f"API error: {e}")
+        return f"<p id='response'>Error: {e}</p>"
+    except Exception as e:
+        logger.error(f"Unexpected API error: {e}", exc_info=True)
+        return "<p id='response'>Internal server error</p>"
 
 @app.route("/login", methods=["GET", "POST"])
-async def login():
-    if (args.enable_gui):
-        virtual_users = args.enable_virtual_users
-        return render_template("login.html", **locals())
-    else:
-        return "The GUI is disabled. In order to enable it, use the --enable-gui argument."
+def login():
+    """Login page."""
+    if not server_manager.args.enable_gui:
+        return "The GUI is disabled. Use the --enable-gui argument to enable it."
+    
+    return render_template(
+        "login.html",
+        virtual_users=server_manager.args.enable_virtual_users
+    )
 
 @app.route("/settings", methods=["GET", "POST"])
-async def settings():
-    virtual_users = args.enable_virtual_users
-    if (request.method == "GET"):
+def settings():
+    """Settings page."""
+    if request.method == "GET":
         return redirect("/login", code=302)
-    if (auth()):
-        try:
-            username = "admin"
-            providers=PROVIDERS
-            generic_models=GENERIC_MODELS
-            data = load_settings()
-            proxies = json.loads(open(PROXIES_FILE).read())
-            if (args.enable_virtual_users):
-                dbm = DBM()
-                users_data = dbm.get_all_users_settings()
-            return render_template("settings.html", **locals())
-        except Exception as error:
-            print("[X] Error:", error)
-            return "Error: " + str(error)
-    elif (user_auth()):
-        try:
-            username = request.form["username"]
-            if (args.enable_virtual_users):
-                providers=PROVIDERS
-                generic_models=GENERIC_MODELS
-                dbm = DBM()
-                data = dbm.get_user_settings(username)
-                print(data)   
-            return render_template("settings.html", **locals())
-        except Exception as error:
-            print("[X] Error:", error)
-            return "Error: " + str(error)
-    else:
-        return render_template("login.html", **locals())
+    
+    try:
+        # Authenticate user
+        username = request.form.get("username", "")
+        password = request.form.get("password", "")
+        
+        is_admin = False
+        if username == "admin":
+            is_admin = auth_service.authenticate_admin(username, password)
+        else:
+            is_admin = False
+            if not auth_service.authenticate_user(username, password):
+                return render_template(
+                    "login.html",
+                    virtual_users=server_manager.args.enable_virtual_users,
+                    error="Invalid credentials"
+                )
+        
+        if not is_admin and username != "admin":
+            # Regular user settings
+            user_data = db_manager.get_user_by_username(username)
+            if not user_data:
+                return render_template(
+                    "login.html",
+                    virtual_users=server_manager.args.enable_virtual_users,
+                    error="User not found"
+                )
+        
+        # Prepare template data
+        template_data = {
+            "username": username,
+            "virtual_users": server_manager.args.enable_virtual_users,
+            "providers": config.available_providers,
+            "generic_models": config.generic_models
+        }
+        
+        if is_admin or username == "admin":
+            # Admin settings
+            template_data["data"] = db_manager.get_settings()
+            
+            # Load proxies
+            proxies_path = Path(config.files.proxies_file)
+            template_data["proxies"] = load_json_file(proxies_path, [])
+            
+            # Load users for virtual users feature
+            if server_manager.args.enable_virtual_users:
+                template_data["users_data"] = db_manager.get_all_users()
+        else:
+            # User settings
+            template_data["data"] = user_data
+        
+        return render_template("settings.html", **template_data)
+        
+    except Exception as e:
+        logger.error(f"Settings page error: {e}")
+        return render_template(
+            "login.html",
+            virtual_users=server_manager.args.enable_virtual_users,
+            error="An error occurred"
+        )
 
 @app.route("/save", methods=["POST"])
-async def save():
-    if (auth()):
-        try:
-            if (request.method == "POST"):
-                save_settings(request, SETTINGS_FILE)
-                apply_settings(SETTINGS_FILE)
+def save_settings():
+    """Save admin settings."""
+    try:
+        # Authenticate admin
+        username = request.form.get("username", "")
+        password = request.form.get("password", "")
+        
+        if not auth_service.authenticate_admin(username, password):
+            return render_template(
+                "login.html",
+                virtual_users=server_manager.args.enable_virtual_users,
+                error="Invalid admin credentials"
+            )
+        
+        # Process settings update
+        settings_update = {}
+        
+        # Boolean settings
+        bool_fields = [
+            "file_input", "remove_sources", "message_history", 
+            "proxies", "fast_api", "virtual_users"
+        ]
+        for field in bool_fields:
+            settings_update[field] = request.form.get(field) == "true"
+        
+        # String settings
+        string_fields = ["port", "model", "keyword", "provider", "system_prompt"]
+        for field in string_fields:
+            value = request.form.get(field, "")
+            if field == "port":
+                is_valid, error_msg = validate_port(value)
+                if not is_valid:
+                    raise ValidationError(f"Invalid port: {error_msg}")
+            settings_update[field] = sanitize_input(value)
+        
+        # Handle password update
+        new_password = request.form.get("new_password", "")
+        if new_password:
+            confirm_password = request.form.get("confirm_password", "")
+            if new_password != confirm_password:
+                raise ValidationError("Passwords do not match")
+            settings_update["password"] = new_password
+        
+        # Handle private mode token
+        if request.form.get("private_mode") == "true":
+            token = request.form.get("token", "")
+            if not token:
+                token = generate_uuid()
+            settings_update["token"] = token
+        else:
+            settings_update["token"] = ""
+        
+        # Handle file upload
+        if 'cookie_file' in request.files:
+            file = request.files['cookie_file']
+            if file.filename:
+                is_valid, error_msg = validate_file_upload(file, config.files.allowed_extensions)
+                if not is_valid:
+                    raise FileUploadError(error_msg)
+                
+                filename = safe_filename(file.filename)
+                file_path = Path(app.config['UPLOAD_FOLDER']) / filename
+                file.save(str(file_path))
+                settings_update["cookie_file"] = str(file_path)
+        
+        # Handle proxies
+        if request.form.get("proxies") == "true":
+            proxies = []
+            i = 1
+            while f"proxy_{i}" in request.form:
+                proxy_url = request.form.get(f"proxy_{i}", "").strip()
+                if proxy_url:
+                    if not validate_proxy_format(proxy_url):
+                        raise ValidationError(f"Invalid proxy format: {proxy_url}")
+                    
+                    proxy_dict = parse_proxy_url(proxy_url)
+                    if proxy_dict:
+                        proxies.append(proxy_dict)
+                i += 1
+            
+            # Save proxies to file
+            proxies_path = Path(config.files.proxies_file)
+            save_json_file(proxies_path, proxies)
+        
+        # Handle virtual users
+        if request.form.get("virtual_users") == "true":
+            current_users = {user["token"]: user["username"] for user in db_manager.get_all_users()}
+            form_users = {}
+            
+            # Extract user data from form
+            for key, value in request.form.items():
+                if key.startswith("username_"):
+                    token = key.split("_", 1)[1]
+                    form_users[token] = sanitize_input(value, 50)
+            
+            # Add new users
+            for token, username in form_users.items():
+                if token not in current_users and username:
+                    try:
+                        db_manager.create_user(username)
+                    except ValidationError as e:
+                        logger.warning(f"Could not create user '{username}': {e}")
+            
+            # Update existing users
+            for token, username in form_users.items():
+                if token in current_users and username != current_users[token]:
+                    try:
+                        user = db_manager.get_user_by_token(token)
+                        if user:
+                            db_manager.update_user_settings(user["username"], {"username": username})
+                    except Exception as e:
+                        logger.warning(f"Could not update user: {e}")
+            
+            # Remove deleted users
+            for token in current_users:
+                if token not in form_users:
+                    try:
+                        user = db_manager.get_user_by_token(token)
+                        if user:
+                            db_manager.delete_user(user["username"])
+                    except Exception as e:
+                        logger.warning(f"Could not delete user: {e}")
+        
+        # Save settings
+        db_manager.update_settings(settings_update)
+        
+        # Restart Fast API if needed
+        if settings_update.get("fast_api") and not server_manager.fast_api_thread:
+            server_manager.start_fast_api()
+        
+        logger.info("Settings saved successfully")
+        return "Settings saved and applied successfully!"
+        
+    except FreeGPTException as e:
+        logger.error(f"Settings save error: {e}")
+        return f"Error: {e}"
+    except Exception as e:
+        logger.error(f"Unexpected settings save error: {e}")
+        return "Error: Failed to save settings"
 
-                return "New settings saved and applied successfully!"
-            else:
-                return render_template("login.html", **locals())
-        except Exception as error:
-            print("[X] Error:", error)
-            return "Error: " + str(error)
-    else:
-        return render_template("login.html", **locals())
-    
 @app.route("/save/<username>", methods=["POST"])
-def save_user(username):
-    if (user_auth()):
-        try:
-            if (request.method == "POST"):
-                save_user_settings(request, SETTINGS_FILE, username)
-
-                return "New settings saved and applied successfully!"
-            else:
-                return render_template("login.html", **locals())
-        except Exception as error:
-            print("[X] Error:", error)
-            return "Error: " + str(error)
-    else:
-        virtual_users = args.enable_virtual_users
-        return render_template("login.html", **locals())
+def save_user_settings(username):
+    """Save user-specific settings."""
+    try:
+        # Authenticate user
+        password = request.form.get("password", "")
+        
+        if not auth_service.authenticate_user(username, password):
+            return render_template(
+                "login.html",
+                virtual_users=server_manager.args.enable_virtual_users,
+                error="Invalid credentials"
+            )
+        
+        # Process user settings update
+        settings_update = {}
+        
+        # String settings
+        string_fields = ["provider", "model", "system_prompt"]
+        for field in string_fields:
+            value = request.form.get(field, "")
+            settings_update[field] = sanitize_input(value)
+        
+        # Boolean settings
+        settings_update["message_history"] = request.form.get("message_history") == "true"
+        
+        # Handle password update
+        new_password = request.form.get("new_password", "")
+        if new_password:
+            confirm_password = request.form.get("confirm_password", "")
+            if new_password != confirm_password:
+                raise ValidationError("Passwords do not match")
+            settings_update["password"] = new_password
+        
+        # Save user settings
+        db_manager.update_user_settings(username, settings_update)
+        
+        logger.info(f"User settings saved for '{username}'")
+        return "Settings saved successfully!"
+        
+    except FreeGPTException as e:
+        logger.error(f"User settings save error: {e}")
+        return f"Error: {e}"
+    except Exception as e:
+        logger.error(f"Unexpected user settings save error: {e}")
+        return "Error: Failed to save settings"
 
 @app.route("/models", methods=["GET"])
-async def get_models():
-    provider = request.args.get("provider")
-    if (provider == "Auto"):
-        return GENERIC_MODELS
-    try:
-        return PROVIDERS[provider].models
-    except:
-        return ["default"]
+def get_models():
+    """Get available models for a provider."""
+    provider = request.args.get("provider", "Auto")
+    return jsonify(ai_service.get_available_models(provider))
 
 @app.route("/generatetoken", methods=["GET", "POST"])
-def get_token():
-    return str(uuid4())
+def generate_token():
+    """Generate a new token."""
+    return generate_uuid()
+
+def main():
+    """Main entry point."""
+    try:
+        # Parse arguments
+        arg_parser = ServerArgumentParser()
+        args = arg_parser.parse_args()
+        
+        # Initialize server manager
+        global server_manager
+        server_manager = ServerManager(args)
+        
+        # Set up password if needed
+        server_manager.setup_password()
+        
+        logger.info(f"Server configuration:")
+        logger.info(f"  Port: {args.port}")
+        logger.info(f"  Provider: {args.provider}")
+        logger.info(f"  Model: {args.model}")
+        logger.info(f"  Private mode: {args.private_mode}")
+        logger.info(f"  GUI enabled: {args.enable_gui}")
+        logger.info(f"  History enabled: {args.enable_history}")
+        logger.info(f"  Proxies enabled: {args.enable_proxies}")
+        logger.info(f"  Virtual users: {args.enable_virtual_users}")
+        
+        # Start server
+        app.run(
+            host=config.server.host,
+            port=args.port,
+            debug=config.server.debug
+        )
+        
+    except KeyboardInterrupt:
+        logger.info("Server shutdown requested by user")
+    except Exception as e:
+        logger.error(f"Server startup failed: {e}", exc_info=True)
+        exit(1)
 
 if __name__ == "__main__":
-    # Starts the server, change the port if needed
-    app.run("0.0.0.0", port=args.port, debug=False)
+    main()
