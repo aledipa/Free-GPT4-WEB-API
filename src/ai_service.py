@@ -258,8 +258,15 @@ class AIService:
             
             # Collect response
             response_text = ""
-            async for chunk in response:
-                response_text += str(chunk)
+            
+            # Handle both string responses and async generators
+            if hasattr(response, '__aiter__'):
+                # It's an async generator
+                async for chunk in response:
+                    response_text += str(chunk)
+            else:
+                # It's already a string
+                response_text = str(response)
             
             if not response_text:
                 raise AIProviderError("Empty response from AI provider")

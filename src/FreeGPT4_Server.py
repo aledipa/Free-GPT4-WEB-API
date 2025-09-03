@@ -283,6 +283,11 @@ class ServerManager:
             logger.error(f"Failed to setup password: {e}")
             exit(1)
 # Routes and handlers
+@app.errorhandler(404)
+def handle_not_found(e):
+    """Handle 404 errors."""
+    return jsonify({"error": "Not found"}), 404
+
 @app.errorhandler(FreeGPTException)
 def handle_freegpt_exception(e):
     """Handle FreeGPT exceptions."""
@@ -292,68 +297,88 @@ def handle_freegpt_exception(e):
 @app.errorhandler(Exception)
 def handle_general_exception(e):
     """Handle general exceptions."""
+    from werkzeug.exceptions import NotFound
+    
+    # Don't log 404 errors as unexpected errors
+    if isinstance(e, NotFound):
+        return jsonify({"error": "Not found"}), 404
+    
     logger.error(f"Unexpected error: {e}", exc_info=True)
     return jsonify({"error": "Internal server error"}), 500
 
 @app.route("/", methods=["GET", "POST"])
-async def index():
+def index():
     """Main API endpoint for chat completion."""
+    import asyncio
+    
+    async def _async_index():
+        try:
+            # Get current settings
+            settings = db_manager.get_settings()
+            
+            # Extract question from request
+            question = None
+            if request.method == "GET":
+                question = request.args.get(server_manager.args.keyword)
+            else:
+                # Handle file upload
+                if 'file' in request.files:
+                    file = request.files['file']
+                    is_valid, error_msg = validate_file_upload(file, config.files.allowed_extensions)
+                    if not is_valid:
+                        raise FileUploadError(error_msg)
+                    
+                    question = file.read().decode('utf-8')
+            
+            if not question:
+                return "<p id='response'>Please enter a question</p>"
+            
+            # Sanitize input
+            question = sanitize_input(question, 10000)  # 10KB limit
+            
+            # Verify token access
+            token = request.args.get("token")
+            username = auth_service.verify_token_access(
+                token, 
+                server_manager.args.private_mode
+            )
+            
+            if server_manager.args.private_mode and not username:
+                return "<p id='response'>Invalid token</p>"
+            
+            if not username:
+                username = "admin"
+            
+            # Generate AI response
+            response_text = await ai_service.generate_response(
+                message=question,
+                username=username,
+                use_history=server_manager.args.enable_history,
+                remove_sources=server_manager.args.remove_sources,
+                use_proxies=server_manager.args.enable_proxies,
+                cookie_file=server_manager.args.cookie_file
+            )
+            
+            logger.info(f"Generated response for user '{username}' ({len(response_text)} chars)")
+            return response_text
+            
+        except FreeGPTException as e:
+            logger.error(f"API error: {e}")
+            return f"<p id='response'>Error: {e}</p>"
+        except Exception as e:
+            logger.error(f"Unexpected API error: {e}", exc_info=True)
+            return "<p id='response'>Internal server error</p>"
+    
+    # Run the async function
     try:
-        # Get current settings
-        settings = db_manager.get_settings()
-        
-        # Extract question from request
-        question = None
-        if request.method == "GET":
-            question = request.args.get(server_manager.args.keyword)
-        else:
-            # Handle file upload
-            if 'file' in request.files:
-                file = request.files['file']
-                is_valid, error_msg = validate_file_upload(file, config.files.allowed_extensions)
-                if not is_valid:
-                    raise FileUploadError(error_msg)
-                
-                question = file.read().decode('utf-8')
-        
-        if not question:
-            return "<p id='response'>Please enter a question</p>"
-        
-        # Sanitize input
-        question = sanitize_input(question, 10000)  # 10KB limit
-        
-        # Verify token access
-        token = request.args.get("token")
-        username = auth_service.verify_token_access(
-            token, 
-            server_manager.args.private_mode
-        )
-        
-        if server_manager.args.private_mode and not username:
-            return "<p id='response'>Invalid token</p>"
-        
-        if not username:
-            username = "admin"
-        
-        # Generate AI response
-        response_text = await ai_service.generate_response(
-            message=question,
-            username=username,
-            use_history=server_manager.args.enable_history,
-            remove_sources=server_manager.args.remove_sources,
-            use_proxies=server_manager.args.enable_proxies,
-            cookie_file=server_manager.args.cookie_file
-        )
-        
-        logger.info(f"Generated response for user '{username}' ({len(response_text)} chars)")
-        return response_text
-        
-    except FreeGPTException as e:
-        logger.error(f"API error: {e}")
-        return f"<p id='response'>Error: {e}</p>"
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        return loop.run_until_complete(_async_index())
     except Exception as e:
-        logger.error(f"Unexpected API error: {e}", exc_info=True)
-        return "<p id='response'>Internal server error</p>"
+        logger.error(f"Async execution error: {e}", exc_info=True)
+        return f"<p id='response'>Error: AI API call failed: {e}</p>"
+    finally:
+        loop.close()
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -630,6 +655,20 @@ def get_models():
 def generate_token():
     """Generate a new token."""
     return generate_uuid()
+
+@app.route("/favicon.ico")
+def favicon():
+    """Serve favicon."""
+    try:
+        from flask import send_from_directory
+        return send_from_directory(
+            str(Path(app.static_folder) / "img"), 
+            "favicon(Nicoladipa).png",
+            mimetype='image/png'
+        )
+    except:
+        # Return empty response if favicon not found
+        return "", 204
 
 def main():
     """Main entry point."""
