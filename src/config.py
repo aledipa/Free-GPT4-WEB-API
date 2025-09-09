@@ -37,7 +37,7 @@ class SecurityConfig:
 class APIConfig:
     """API configuration."""
     default_model: str = "gpt-4"
-    default_provider: str = "Auto"
+    default_provider: str = "DuckDuckGo"  # More reliable than Auto
     default_keyword: str = "text"
     fast_api_port: int = 1336
     
@@ -88,17 +88,17 @@ class Config:
             "Auto": "",
             "ARTA": g4f.Provider.ARTA,
             "Blackbox": g4f.Provider.Blackbox,
-            "Chatai": g4f.Provider.Chatai,
+            # "Chatai": g4f.Provider.Chatai,  # Temporarily disabled due to 401 errors
             "Cloudflare": g4f.Provider.Cloudflare,
             "Copilot": g4f.Provider.Copilot,
             "DeepInfra": g4f.Provider.DeepInfra,
             "DuckDuckGo": g4f.Provider.DuckDuckGo,
             "LambdaChat": g4f.Provider.LambdaChat,
-            "OIVSCodeSer0501": g4f.Provider.OIVSCodeSer0501,
-            "OpenAIFM": g4f.Provider.OpenAIFM,
+            # "OIVSCodeSer0501": g4f.Provider.OIVSCodeSer0501,
+            # "OpenAIFM": g4f.Provider.OpenAIFM,
             "PerplexityLabs": g4f.Provider.PerplexityLabs,
             "PollinationsAI": g4f.Provider.PollinationsAI,
-            "PollinationsImage": g4f.Provider.PollinationsImage,
+            # "PollinationsImage": g4f.Provider.PollinationsImage,  # Image provider
             "TeachAnything": g4f.Provider.TeachAnything,
             "Together": g4f.Provider.Together,
             "WeWordle": g4f.Provider.WeWordle,

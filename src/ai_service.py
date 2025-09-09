@@ -11,12 +11,14 @@ from config import config
 from database import db_manager
 from utils.exceptions import AIProviderError, ValidationError
 from utils.logging import logger
+from utils.http_utils import safe_api_call, TimeoutConfig
 from utils.helpers import (
     load_json_file, 
     clean_response_sources, 
     select_random_proxy,
     create_dummy_cookies
 )
+from utils.provider_monitor import provider_monitor
 from utils.validation import validate_provider, validate_model
 
 class AIService:
@@ -235,26 +237,135 @@ class AIService:
         Raises:
             AIProviderError: If API call fails
         """
-        try:
-            # Prepare provider
-            ai_provider = None if provider == "Auto" else self.config.available_providers.get(provider)
+        # Check if provider is blacklisted
+        if provider_monitor.is_provider_blacklisted(provider):
+            logger.warning(f"Provider '{provider}' is blacklisted, using fallback")
+            provider = "Auto"
+        
+        # Get reliable providers for fallback
+        reliable_providers = provider_monitor.get_reliable_providers(self.config.available_providers)
+        
+        # Try original provider first
+        if provider != "Auto":
+            ai_provider = self.config.available_providers.get(provider)
+            if ai_provider:
+                logger.info(f"Attempting with provider: {provider}")
+                response = await self._make_api_call(chat_history, ai_provider, model, cookies, proxy, provider)
+                if response:
+                    provider_monitor.record_success(provider)
+                    return response
+                else:
+                    provider_monitor.record_failure(provider, "no_response")
+        
+        # Try Auto mode
+        logger.info("Attempting with Auto mode")
+        response = await self._make_api_call(chat_history, None, model, cookies, proxy, "Auto")
+        if response:
+            provider_monitor.record_success("Auto")
+            return response
+        else:
+            provider_monitor.record_failure("Auto", "no_response")
+        
+        # Try reliable providers as fallback
+        logger.warning("Auto mode failed, trying reliable providers")
+        for fallback_provider in reliable_providers[:3]:  # Try top 3 reliable providers
+            try:
+                ai_provider = self.config.available_providers.get(fallback_provider)
+                if ai_provider:
+                    logger.info(f"Attempting reliable fallback: {fallback_provider}")
+                    response = await self._make_api_call(chat_history, ai_provider, model, cookies, proxy, fallback_provider)
+                    if response:
+                        provider_monitor.record_success(fallback_provider)
+                        logger.info(f"Successfully used reliable fallback: {fallback_provider}")
+                        return response
+                    else:
+                        provider_monitor.record_failure(fallback_provider, "no_response")
+            except Exception as e:
+                provider_monitor.record_failure(fallback_provider, "exception")
+                logger.warning(f"Reliable fallback {fallback_provider} failed: {e}")
+                continue
+        
+        # Last resort: try any healthy provider
+        healthy_providers = provider_monitor.get_healthy_providers(self.config.available_providers)
+        logger.warning("Reliable providers failed, trying any healthy provider")
+        
+        for fallback_provider in healthy_providers[:5]:  # Try up to 5 healthy providers
+            if fallback_provider in reliable_providers:
+                continue  # Already tried
             
-            # Make API call
-            if provider == "Auto":
-                response = await g4f.ChatCompletion.create_async(
+            try:
+                ai_provider = self.config.available_providers.get(fallback_provider)
+                if ai_provider:
+                    logger.info(f"Attempting healthy fallback: {fallback_provider}")
+                    response = await self._make_api_call(chat_history, ai_provider, model, cookies, proxy, fallback_provider)
+                    if response:
+                        provider_monitor.record_success(fallback_provider)
+                        logger.info(f"Successfully used healthy fallback: {fallback_provider}")
+                        return response
+                    else:
+                        provider_monitor.record_failure(fallback_provider, "no_response")
+            except Exception as e:
+                provider_monitor.record_failure(fallback_provider, "exception")
+                logger.warning(f"Healthy fallback {fallback_provider} failed: {e}")
+                continue
+        
+        # Log provider status summary for debugging
+        status_summary = provider_monitor.get_status_summary()
+        logger.error(f"All providers failed. Status summary: {status_summary}")
+        
+        raise AIProviderError("All providers failed to generate a response")
+    
+    async def _make_api_call(
+        self,
+        chat_history: List[Dict[str, str]],
+        ai_provider,
+        model: str,
+        cookies: Dict[str, str],
+        proxy: Optional[str],
+        provider_name: str = "Unknown"
+    ) -> Optional[str]:
+        """Make a single API call to g4f.
+        
+        Args:
+            chat_history: Chat message history
+            ai_provider: AI provider object or None for Auto
+            model: AI model
+            cookies: Request cookies
+            proxy: Proxy URL
+            provider_name: Name of provider for logging
+            
+        Returns:
+            AI response text or None if failed
+        """
+        
+        async def make_request():
+            if ai_provider is None:  # Auto mode
+                return await g4f.ChatCompletion.create_async(
                     model=model,
                     messages=chat_history,
                     cookies=cookies,
                     proxy=proxy
                 )
             else:
-                response = await g4f.ChatCompletion.create_async(
+                return await g4f.ChatCompletion.create_async(
                     model=model,
                     provider=ai_provider,
                     messages=chat_history,
                     cookies=cookies,
                     proxy=proxy
                 )
+        
+        try:
+            # Use safe_api_call with timeout and retry logic
+            response = await safe_api_call(
+                make_request,
+                timeout=TimeoutConfig.DEFAULT_TIMEOUT,
+                max_retries=1  # Only 1 retry per provider to fail fast
+            )
+            
+            if response is None:
+                logger.warning(f"Provider {provider_name} returned no response")
+                return None
             
             # Collect response
             response_text = ""
@@ -262,21 +373,48 @@ class AIService:
             # Handle both string responses and async generators
             if hasattr(response, '__aiter__'):
                 # It's an async generator
-                async for chunk in response:
-                    response_text += str(chunk)
+                import asyncio
+                try:
+                    async for chunk in response:
+                        response_text += str(chunk)
+                        # Add small delay to prevent blocking and allow timeout handling
+                        await asyncio.sleep(0.001)
+                except Exception as e:
+                    logger.warning(f"Error reading streaming response from {provider_name}: {e}")
+                    return None
             else:
                 # It's already a string
                 response_text = str(response)
             
-            if not response_text:
-                raise AIProviderError("Empty response from AI provider")
+            if not response_text or response_text.strip() == "":
+                logger.warning(f"Empty response from provider {provider_name}")
+                return None
             
-            logger.debug(f"Received response of {len(response_text)} characters")
+            logger.debug(f"Received response of {len(response_text)} characters from {provider_name}")
             return response_text
             
         except Exception as e:
-            logger.error(f"AI API call failed: {e}")
-            raise AIProviderError(f"AI API call failed: {e}")
+            error_msg = str(e).lower()
+            error_type = "unknown"
+            
+            if "401" in error_msg or "unauthorized" in error_msg:
+                error_type = "unauthorized"
+                logger.warning(f"Provider {provider_name} returned unauthorized error: {e}")
+            elif "chrome" in error_msg or "browser" in error_msg:
+                error_type = "browser_required"
+                logger.warning(f"Provider {provider_name} requires browser but none found: {e}")
+            elif "timeout" in error_msg or "too slow" in error_msg:
+                error_type = "timeout"
+                logger.warning(f"Provider {provider_name} connection timeout: {e}")
+            elif "connection" in error_msg or "network" in error_msg:
+                error_type = "network"
+                logger.warning(f"Provider {provider_name} network error: {e}")
+            else:
+                logger.warning(f"Provider {provider_name} failed with error: {e}")
+            
+            # Record failure in monitor
+            provider_monitor.record_failure(provider_name, error_type)
+            return None
     
     def get_available_models(self, provider: str) -> List[str]:
         """Get available models for a provider.

@@ -8,11 +8,14 @@
 
 Self-hosted web API that exposes free, unlimited access to modern LLM providers through a single, simple HTTP interface. It includes an optional web GUI for configuration and supports running via Python or Docker.
 
-- Free to use
-- Unlimited requests
-- Simple HTTP interface (returns plain text)
-- Optional Web GUI
-- Docker image available
+## Key Features
+
+- **Free to use** - No API keys or subscriptions required
+- **Unlimited requests** - No rate limiting
+- **Simple HTTP interface** - Returns plain text responses
+- **Optional Web GUI** - Easy configuration through browser
+- **Docker support** - Ready-to-use container available
+- **Smart timeout handling** - Automatic retry with optimized timeouts
 
 Note: The demo server, when available, can be overloaded and may not always respond.
 
@@ -42,13 +45,6 @@ Note: The demo server, when available, can be overloaded and may not always resp
 - License
 
 ---
-
-## Features
-
-- Self-hosted DeepSeek-R1 and GPT-4o API
-- Unlimited usage
-- Free of cost
-- User-friendly GUI
 
 ## Screenshots
 
@@ -112,8 +108,15 @@ pip install -r requirements.txt
 ```
 
 3. Start the server (basic)
+```bash
+python3 src/FreeGPT4_Server.py
 ```
-python3 FreeGPT4_Server.py
+
+### Security Note
+
+When using the Web GUI, always set a secure password:
+```bash
+python3 src/FreeGPT4_Server.py --enable-gui --password your_secure_password
 ```
 
 ---
@@ -170,12 +173,12 @@ From the GUI you can configure common options (e.g., model, provider, keyword, h
 ## Command-line options
 
 Show help:
-```
-python3 FreeGPT4_Server.py [-h] [--remove-sources] [--enable-gui]
-                           [--private-mode] [--enable-history] [--password PASSWORD]
-                           [--cookie-file COOKIE_FILE] [--file-input] [--port PORT]
-                           [--model MODEL] [--provider PROVIDER] [--keyword KEYWORD]
-                           [--system-prompt SYSTEM_PROMPT] [--enable-proxies] [--enable-virtual-users]
+```bash
+python3 src/FreeGPT4_Server.py [-h] [--remove-sources] [--enable-gui]
+                                [--private-mode] [--enable-history] [--password PASSWORD]
+                                [--cookie-file COOKIE_FILE] [--file-input] [--port PORT]
+                                [--model MODEL] [--provider PROVIDER] [--keyword KEYWORD]
+                                [--system-prompt SYSTEM_PROMPT] [--enable-proxies] [--enable-virtual-users]
 ```
 
 Options:
@@ -219,19 +222,33 @@ Enable proxies to mitigate blocks:
 
 ### Models and providers
 
-- Models: includes gpt-4 (and variants such as GPT-4o) and DeepSeek-R1
-- Default model: `gpt-4`
-- Default provider: `Bing`
-- Change via flags or in the GUI:
-```
+- **Models**: gpt-4, gpt-4o, deepseek-r1, and other modern LLMs
+- **Default model**: `gpt-4`
+- **Default provider**: `DuckDuckGo` (reliable fallback)
+- **Provider Fallback**: Automatic switching between Bing, DuckDuckGo, and other providers
+- **Health Monitoring**: Real-time provider status tracking
+
+Change via flags or in the GUI:
+```bash
 --model gpt-4o --provider Bing
 ```
+
+### Reliability Features
+
+- **Smart Timeout Handling**: Optimized 30-second timeouts with automatic retry
+- **Provider Fallback**: Automatic switching when primary provider fails
+- **Health Monitoring**: Continuous provider status tracking
+- **Blacklist System**: Automatic exclusion of problematic providers
 
 ### Private mode and password
 
 - `--private-mode` requires a private token to access the API
-- `--password` protects the settings page (mandatory in some Docker setups)
+- `--password` protects the settings page (**mandatory in Docker setups**)
+- **Security Enhancement**: Authentication system hardened against bypass attacks
+- **Logging**: All authentication attempts are logged for security monitoring
 - Use a strong password if you expose the API beyond localhost
+
+**Important**: Always set a password when using the Web GUI to prevent unauthorized access.
 
 ---
 
@@ -250,13 +267,34 @@ Say “GPT Mode” to Siri and ask your question when prompted.
 
 ## Requirements
 
-- Python 3
+- Python 3.8+
 - Flask[async]
 - g4f (from https://github.com/xtekky/gpt4free)
 - aiohttp
 - aiohttp_socks
-- auth
 - Werkzeug
+- requests (for enhanced HTTP handling)
+
+For development and testing:
+- pytest
+- pytest-asyncio
+
+## Troubleshooting
+
+### Common Issues
+
+1. **Timeout Errors**: The system now automatically retries with fallback providers
+2. **Provider Blocks**: Health monitoring automatically switches to working providers
+3. **Authentication Issues**: Ensure you set a strong password and check logs for failed attempts
+4. **Docker Permission Issues**: Use read-only mounts for sensitive files like cookies.json
+
+### Getting Help
+
+If you encounter issues:
+1. Check the application logs for detailed error information
+2. Verify your provider configuration in the Web GUI
+3. Ensure cookies are properly formatted (if using)
+4. Try different providers through the fallback system
 
 ---
 
@@ -269,9 +307,6 @@ Say “GPT Mode” to Siri and ask your question when prompted.
 ## Contributing
 
 Contributions are welcome! Feel free to open issues and pull requests to improve features, docs, or reliability.
-
-Credits:
-- Some examples and tips credited to community members, including @git-malik and @ayoubelmhamdi.
 
 ---
 

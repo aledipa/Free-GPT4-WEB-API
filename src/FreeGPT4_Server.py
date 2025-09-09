@@ -252,13 +252,16 @@ class ServerManager:
         
         try:
             settings = db_manager.get_settings()
+            current_password = settings.get("password", "")
             
             if self.args.password:
                 # Password provided via command line
                 password = self.args.password
                 confirm_password = password
-            elif not settings.get("password"):
+                logger.info("Using password provided via command line argument")
+            elif not current_password:
                 # No password set, prompt for new one
+                logger.info("No admin password configured. Setting up new password...")
                 password = getpass.getpass("Settings page password:\n > ")
                 confirm_password = getpass.getpass("Confirm password:\n > ")
             else:
@@ -275,9 +278,21 @@ class ServerManager:
                 logger.error("Passwords don't match")
                 exit(1)
             
-            # Save password
+            # Additional password strength validation
+            if len(password) < config.security.password_min_length:
+                logger.error(f"Password must be at least {config.security.password_min_length} characters long")
+                exit(1)
+            
+            # Save password (will be hashed automatically in update_settings)
             db_manager.update_settings({"password": password})
             logger.info("Admin password configured successfully")
+            
+            # Verify the password was saved correctly
+            if not db_manager.verify_admin_password(password):
+                logger.error("Password verification failed after setup")
+                exit(1)
+            
+            logger.info("Password verification successful")
             
         except Exception as e:
             logger.error(f"Failed to setup password: {e}")
@@ -405,6 +420,12 @@ def settings():
         is_admin = False
         if username == "admin":
             is_admin = auth_service.authenticate_admin(username, password)
+            if not is_admin:
+                return render_template(
+                    "login.html",
+                    virtual_users=server_manager.args.enable_virtual_users,
+                    error="Invalid admin credentials"
+                )
         else:
             is_admin = False
             if not auth_service.authenticate_user(username, password):
@@ -432,8 +453,8 @@ def settings():
             "generic_models": config.generic_models
         }
         
-        if is_admin or username == "admin":
-            # Admin settings
+        if is_admin:
+            # Admin settings (only if properly authenticated)
             template_data["data"] = db_manager.get_settings()
             
             # Load proxies

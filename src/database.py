@@ -248,10 +248,20 @@ class DatabaseManager:
             settings = self.get_settings()
             stored_password = settings.get("password", "")
             
+            # If no password is set, deny access (more secure default)
             if not stored_password:
-                return True  # No password set
+                logger.warning("Admin login attempted but no password is configured")
+                return False
             
-            return check_password_hash(stored_password, password)
+            # Verify password hash
+            is_valid = check_password_hash(stored_password, password)
+            
+            if is_valid:
+                logger.info("Admin authentication successful")
+            else:
+                logger.warning(f"Admin authentication failed for password attempt")
+            
+            return is_valid
         except Exception as e:
             logger.error(f"Failed to verify admin password: {e}")
             return False
