@@ -202,12 +202,13 @@
                     <b>Password:</b>
                     <div id="password_update" class="mt-4 hidden">
                         <p class="text-sm"> <b> Set Password </b></p>
-                        <input type="password" id="new_password" name="new_password" class="input outline-none py-1 px-2 rounded-lg inter" placeholder="Your new Password" onchange="enableSaveButton();" autocomplete="new-password"></input>
+                        <input type="password" id="new_password" name="new_password" class="input outline-none py-1 px-2 rounded-lg inter" placeholder="Your new Password" onchange="enableSaveButton();" oninput="validatePasswordLength();" autocomplete="new-password" minlength="8"></input>
                         <p class="text-sm mt-4"> <b> Confirm Password </b></p>
-                        <input type="password" id="confirm_password" name="confirm_password" class="input outline-none py-1 px-2 rounded-lg inter" placeholder="New Password Again" onchange="enableSaveButton();" autocomplete="new-password"></input>
+                        <input type="password" id="confirm_password" name="confirm_password" class="input outline-none py-1 px-2 rounded-lg inter" placeholder="New Password Again" onchange="enableSaveButton();" oninput="validatePasswordLength();" autocomplete="new-password" minlength="8"></input>
+                        <p id="error_password_length" class="text-sm label_red mt-1 hidden"> <b> Error: </b> Password must be at least 8 characters long </p>
                         <p id="error_password" class="text-sm label_red mt-1 hidden"> <b> Error: </b> Passwords do not match </p>
                         <p id="success_password" class="text-sm label_green mt-1 hidden"> 
-                            <b> Success: </b> Passwords match. <br> 
+                            <b> Success: </b> Passwords match and meet requirements. <br> 
                             <i> When entering the old password below to confirm, the password will be updated </i>
                         </p>
                     </div>

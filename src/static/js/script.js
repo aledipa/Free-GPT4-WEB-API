@@ -206,19 +206,76 @@ function checkAllProxies() {
   }
 }
 
-// Checks if new password and confirm password match
+// Validates password length (minimum 8 characters)
+function validatePasswordLength() {
+  var newPassword = document.getElementById("new_password").value;
+  var confirmPassword = document.getElementById("confirm_password").value;
+  
+  // Check if either password field is not empty and has less than 8 characters
+  if ((newPassword.length > 0 && newPassword.length < 8) || 
+      (confirmPassword.length > 0 && confirmPassword.length < 8)) {
+    showElement("error_password_length");
+    hideElement("error_password");
+    hideElement("success_password");
+    return false;
+  } else {
+    hideElement("error_password_length");
+    // Only validate match if both fields have valid length
+    if (newPassword.length >= 8 && confirmPassword.length >= 8) {
+      return validatePasswordMatch();
+    }
+    return true;
+  }
+}
+
+// Checks if new password and confirm password match (internal function)
+function validatePasswordMatch() {
+  var newPassword = document.getElementById("new_password").value;
+  var confirmPassword = document.getElementById("confirm_password").value;
+  
+  if (newPassword == confirmPassword) {
+    hideElement("error_password");
+    hideElement("error_password_length");
+    showElement("success_password");
+    return true;
+  } else {
+    hideElement("success_password");
+    hideElement("error_password_length");
+    showElement("error_password");
+    return false;
+  }
+}
+
+// Checks if new password and confirm password match (main function for compatibility)
 function checkPasswordMatch() {
   var newPassword = document.getElementById("new_password").value;
   var confirmPassword = document.getElementById("confirm_password").value;
-  if (newPassword == confirmPassword) {
-    if (newPassword.length > 0) {
-      replaceElement("error_password", "success_password");
-      return true;
-    }
-  } else {
-    replaceElement("success_password", "error_password");
+  
+  // Check length first
+  if ((newPassword.length > 0 && newPassword.length < 8) || 
+      (confirmPassword.length > 0 && confirmPassword.length < 8)) {
+    showElement("error_password_length");
+    hideElement("error_password");
+    hideElement("success_password");
+    return false;
   }
-  return false;
+  
+  // Hide length error if length is valid
+  hideElement("error_password_length");
+  
+  // Check match if both passwords have content
+  if (newPassword.length > 0 && confirmPassword.length > 0) {
+    return validatePasswordMatch();
+  }
+  
+  // If passwords are empty, hide all messages
+  if (newPassword.length === 0 && confirmPassword.length === 0) {
+    hideElement("error_password");
+    hideElement("error_password_length");
+    hideElement("success_password");
+  }
+  
+  return newPassword.length >= 8 && confirmPassword.length >= 8;
 }
 
 // Opens the update password form
@@ -232,6 +289,7 @@ function cancelPasswordUpdate() {
   hideElement("password_update");
   hideElement("success_password");
   hideElement("error_password");
+  hideElement("error_password_length");
   replaceElement("cancel_password_update", "open_password_update");
   document.getElementById("new_password").value = "";
   document.getElementById("confirm_password").value = "";
@@ -240,9 +298,10 @@ function cancelPasswordUpdate() {
 // Enables the save button if the password is correct
 function enableSaveButton() {
   var pass_length = document.getElementById("password").value.length;
-  // var isPasswordUpdateClosed = document.getElementById("password_update").hidden;
-  var isPasswordUpdateClosed = document.getElementById("password_update").classList.contains("hidden")
-  if ((checkPasswordMatch() || isPasswordUpdateClosed) && pass_length > 0) {
+  var isPasswordUpdateClosed = document.getElementById("password_update").classList.contains("hidden");
+  var isPasswordValid = isPasswordUpdateClosed || checkPasswordMatch();
+  
+  if (isPasswordValid && pass_length > 0) {
     replaceElement('save_label_dummy', 'save_label');
   } else {
     replaceElement('save_label', 'save_label_dummy');

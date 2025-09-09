@@ -520,6 +520,8 @@ def save_settings():
             confirm_password = request.form.get("confirm_password", "")
             if new_password != confirm_password:
                 raise ValidationError("Passwords do not match")
+            if len(new_password) < 8:
+                raise ValidationError("Password must be at least 8 characters long")
             settings_update["password"] = new_password
         
         # Handle private mode token
@@ -651,6 +653,8 @@ def save_user_settings(username):
             confirm_password = request.form.get("confirm_password", "")
             if new_password != confirm_password:
                 raise ValidationError("Passwords do not match")
+            if len(new_password) < 8:
+                raise ValidationError("Password must be at least 8 characters long")
             settings_update["password"] = new_password
         
         # Save user settings

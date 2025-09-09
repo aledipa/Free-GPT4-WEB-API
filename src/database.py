@@ -288,8 +288,10 @@ class DatabaseManager:
         # Validate password
         if password is None:
             password = username  # Default password
+            is_valid, error_msg = validate_password(password, 1)
+        else:
+            is_valid, error_msg = validate_password(password, config.security.password_min_length)
         
-        is_valid, error_msg = validate_password(password, config.security.password_min_length)
         if not is_valid:
             raise ValidationError(error_msg)
         
