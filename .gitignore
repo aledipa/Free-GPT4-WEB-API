@@ -98,3 +98,8 @@ src/data/*.db
 .coverage
 .pytest_cache/
 test-results/
+
+# Python Cache
+src/__pycache__/
+src/utils/__pycache__/
+
