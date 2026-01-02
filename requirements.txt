@@ -4,9 +4,12 @@ aiohttp_socks
 auth
 Flask[async]
 g4f
-Werkzeug>=3.0.3
+Werkzeug>=3.1.4
 aiohttp_socks
 nodriver
 python-multipart
 uvicorn
 fastapi
+platformdirs
+trio
+eventlet

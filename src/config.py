@@ -37,7 +37,7 @@ class SecurityConfig:
 class APIConfig:
     """API configuration."""
     default_model: str = "gpt-4"
-    default_provider: str = "DuckDuckGo"  # More reliable than Auto
+    default_provider: str = "PollinationsAI"  # More reliable than Auto
     default_keyword: str = "text"
     fast_api_port: int = 1336
     
@@ -86,22 +86,31 @@ class Config:
         import g4f
         return {
             "Auto": "",
-            "ARTA": g4f.Provider.ARTA,
-            "Blackbox": g4f.Provider.Blackbox,
+            # "ARTA": g4f.Provider.ARTA, # Removed in g4f > 0.2.0
+            # "Blackbox": g4f.Provider.Blackbox, # Removed
+            "BlackboxPro": g4f.Provider.BlackboxPro,
             # "Chatai": g4f.Provider.Chatai,  # Temporarily disabled due to 401 errors
             "Cloudflare": g4f.Provider.Cloudflare,
             "Copilot": g4f.Provider.Copilot,
+            "DDGS": g4f.Provider.DDGS, # DuckDuckGo replacement
             "DeepInfra": g4f.Provider.DeepInfra,
-            "DuckDuckGo": g4f.Provider.DuckDuckGo,
+            # "DuckDuckGo": g4f.Provider.DuckDuckGo, # Removed
+            "Gemini": g4f.Provider.Gemini,
+            "HuggingChat": g4f.Provider.HuggingChat,
             "LambdaChat": g4f.Provider.LambdaChat,
+            "LMArena": g4f.Provider.LMArena,
             # "OIVSCodeSer0501": g4f.Provider.OIVSCodeSer0501,
             # "OpenAIFM": g4f.Provider.OpenAIFM,
-            "PerplexityLabs": g4f.Provider.PerplexityLabs,
+            "OpenaiChat": g4f.Provider.OpenaiChat,
+            "Perplexity": g4f.Provider.Perplexity,
+            # "PerplexityLabs": g4f.Provider.PerplexityLabs, # Removed
+            "Pi": g4f.Provider.Pi,
             "PollinationsAI": g4f.Provider.PollinationsAI,
             # "PollinationsImage": g4f.Provider.PollinationsImage,  # Image provider
             "TeachAnything": g4f.Provider.TeachAnything,
             "Together": g4f.Provider.Together,
             "WeWordle": g4f.Provider.WeWordle,
+            "You": g4f.Provider.You,
             "Yqcloud": g4f.Provider.Yqcloud,
         }
     
