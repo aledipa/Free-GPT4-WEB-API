@@ -300,7 +300,7 @@ If you encounter issues:
 
 ## Star history
 
-[![Star History Chart](https://api.star-history.com/svg?repos=aledipa/Free-GPT4-WEB-API&type=Date)](https://star-history.com/#aledipa/Free-GPT4-WEB-API&Date)
+[![Star History Chart](https://star-history.dera.page/svg?repos=aledipa/Free-GPT4-WEB-API&type=Date)](https://star-history.dera.page/#aledipa/Free-GPT4-WEB-API&Date)
 
 ---
 
