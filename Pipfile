@@ -4,12 +4,12 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-edgegpt = "*"
-flask = {extras = ["async"], version = "*"}
-aiohttp = "*"
-werkzeug = ">=3.1.4"
+flask = {extras = ["async"], version = ">=3.1.3"}
+aiohttp = ">=3.13.4"
+werkzeug = ">=3.1.8"
 
 [dev-packages]
+pip-audit = "*"
 
 [requires]
-python_version = "3.10"
+python_version = "3.15"

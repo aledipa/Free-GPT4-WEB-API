@@ -5,6 +5,9 @@ By: Alessandro Di Pasquale
 GPT4Free Credits: github.com/xtekky/gpt4free
 """
 
+import sys
+sys.modules.setdefault("eventlet", None)
+
 import os
 import argparse
 import threading
